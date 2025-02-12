@@ -18,25 +18,31 @@ if (!$loggedInUser || $loggedInUser['role'] !== 'admin') {
     exit();
 }
 
-// Fetch all normal users
-$users = $collection->find(['role' => 'user']);
+// Fetch all posts
+$postCollection = $db->posts;
+$posts = $postCollection->find([]);
 
-// Handle user promotion to admin
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['promote_user'])) {
-    $userId = $_POST['user_id'];
+// Handle adding new post
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_post'])) {
+    $title = $_POST['title'];
+    $content = $_POST['content'];
 
-    // Only the main admin can assign admin roles
-    if ($loggedInUser['email'] !== "karthikdnair001@gmail.com") {
-        die("❌ Only the owner can promote users to admin.");
-    }
+    $postCollection->insertOne([
+        'title' => $title,
+        'content' => $content,
+        'created_at' => new MongoDB\BSON\UTCDateTime()
+    ]);
 
-    $collection->updateOne(
-        ['_id' => new MongoDB\BSON\ObjectId($userId)],
-        ['$set' => ['role' => 'admin']]
-    );
+    header("Location: admin_dashboard.php?success=PostAdded");
+    exit();
+}
 
-    echo "✅ User promoted to admin!";
-    header("Location: admin_dashboard.php");
+// Handle deleting post
+if (isset($_GET['delete'])) {
+    $postId = $_GET['delete'];
+
+    $postCollection->deleteOne(['_id' => new MongoDB\BSON\ObjectId($postId)]);
+    header("Location: admin_dashboard.php?success=PostDeleted");
     exit();
 }
 ?>
@@ -52,15 +58,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['promote_user'])) {
     <h1>Admin Dashboard</h1>
     <p>Welcome, <strong><?= htmlspecialchars($loggedInUser['name']) ?></strong> (<?= htmlspecialchars($loggedInUser['email']) ?>)</p>
 
-    <h2>Promote Users to Admin</h2>
+    <?php if (isset($_GET['success'])): ?>
+        <p style="color: green;">✅ <?= htmlspecialchars($_GET['success']) ?></p>
+    <?php endif; ?>
+
+    <h2>Add New Post</h2>
     <form method="POST">
-        <select name="user_id">
-            <?php foreach ($users as $user): ?>
-                <option value="<?= $user['_id'] ?>"><?= htmlspecialchars($user['email']) ?></option>
-            <?php endforeach; ?>
-        </select>
-        <button type="submit" name="promote_user">Promote to Admin</button>
+        <input type="text" name="title" placeholder="Post Title" required>
+        <textarea name="content" placeholder="Content" required></textarea>
+        <button type="submit" name="add_post">Add Post</button>
     </form>
+
+    <h2>Existing Posts</h2>
+    <table border="1">
+        <tr>
+            <th>Title</th>
+            <th>Content</th>
+            <th>Actions</th>
+        </tr>
+        <?php foreach ($posts as $post): ?>
+        <tr>
+            <td><?= htmlspecialchars($post['title']) ?></td>
+            <td><?= htmlspecialchars($post['content']) ?></td>
+            <td>
+                <a href="edit_post.php?id=<?= $post['_id'] ?>">✏️ Edit</a> | 
+                <a href="admin_dashboard.php?delete=<?= $post['_id'] ?>" onclick="return confirm('Are you sure?')">🗑️ Delete</a>
+            </td>
+        </tr>
+        <?php endforeach; ?>
+    </table>
 
     <br>
     <a href="admin_panel.php">Go to Admin Panel</a> | <a href="logout.php">Logout</a>
