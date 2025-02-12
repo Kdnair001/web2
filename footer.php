@@ -5,18 +5,21 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body {
-            margin: 0;
-            padding: 0;
+        html, body {
+            height: 100%;
             font-family: Arial, sans-serif;
             color: #fff;
             background: linear-gradient(to right, #000000, #434343);
             text-align: center;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content {
+            flex: 1;
         }
 
         footer {
-            position: fixed;
-            bottom: 0;
             width: 100%;
             padding: 15px;
             background: linear-gradient(to right, #000000, #434343);
@@ -49,6 +52,10 @@
     </style>
 </head>
 <body>
+    <div class="content">
+        <!-- Page Content Goes Here -->
+    </div>
+
     <footer>
         <p>&copy; <?php echo date("Y"); ?> CTZENOCS. All rights reserved.</p>
         <ul class="footer-links">
@@ -58,4 +65,3 @@
     </footer>
 </body>
 </html>
-
