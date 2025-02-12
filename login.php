@@ -64,22 +64,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['logged_in'] = true;
             $_SESSION['user_id'] = (string)$user['_id'];
+            $_SESSION['role'] = $user['role'];
 
-            // Ensure default admin assignment
-            if ($email === "karthikdnair001@gmail.com") {
-                $_SESSION['role'] = "admin";
-                $collection->updateOne(['_id' => $user['_id']], ['$set' => ['role' => 'admin']]);
-            } else {
-                $_SESSION['role'] = $user['role'];
-            }
-
-            // Debug: Check assigned role (remove this after testing)
-            var_dump($_SESSION['role']);
-            exit();
-
-            // Redirect based on role
-            $redirect_url = ($_SESSION['role'] === 'admin') ? "admin_dashboard.php" : "user_dashboard.php";
-            header("Location: $redirect_url");
+            // Redirect all users to index.php
+            header("Location: index.php");
             exit();
         } else {
             $error = "❌ Invalid email or password!";
@@ -149,3 +137,4 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </div>
 </body>
 </html>
+
