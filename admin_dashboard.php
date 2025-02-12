@@ -31,11 +31,13 @@ $noticesCollection = $db->notices;
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['create'])) {
     $title = trim($_POST['title']);
     $content = trim($_POST['content']);
+    $adminName = $_SESSION['name'] ?? 'Unknown';
 
     if (!empty($title) && !empty($content)) {
         $noticesCollection->insertOne([
-            'title' => $title,
-            'content' => $content,
+            'title' => htmlspecialchars($title),
+            'content' => htmlspecialchars($content),
+            'posted_by' => $adminName,
             'created_at' => new MongoDB\BSON\UTCDateTime()
         ]);
         header("Location: admin_dashboard.php");
@@ -54,7 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['edit'])) {
     if (!empty($title) && !empty($content)) {
         $noticesCollection->updateOne(
             ['_id' => $noticeId],
-            ['$set' => ['title' => $title, 'content' => $content]]
+            ['$set' => ['title' => htmlspecialchars($title), 'content' => htmlspecialchars($content)]]
         );
         header("Location: admin_dashboard.php");
         exit();
@@ -162,16 +164,21 @@ $notices = $noticesCollection->find([], ['sort' => ['created_at' => -1]]);
 
         <?php foreach ($notices as $notice): ?>
             <div class="notice">
-                <h4><?= htmlspecialchars($notice['title']) ?></h4>
-                <p><?= nl2br(htmlspecialchars($notice['content'])) ?></p>
-                <p><small>Posted on: <?= date('Y-m-d H:i:s', $notice['created_at']->toDateTime()->getTimestamp()) ?></small></p>
+                <h4><?= htmlspecialchars($notice['title'] ?? 'No Title') ?></h4>
+                <p><?= nl2br(htmlspecialchars($notice['content'] ?? 'No Content')) ?></p>
+                <p>
+                    <small>
+                        Posted by: <?= htmlspecialchars($notice['posted_by'] ?? 'Unknown') ?> |
+                        <?= isset($notice['created_at']) ? date('Y-m-d H:i:s', $notice['created_at']->toDateTime()->getTimestamp()) : 'Unknown Date' ?>
+                    </small>
+                </p>
 
                 <!-- Edit Form -->
                 <form method="POST">
                     <input type="hidden" name="notice_id" value="<?= $notice['_id'] ?>">
                     <div class="form-group">
-                        <input type="text" name="title" value="<?= htmlspecialchars($notice['title']) ?>" required>
-                        <textarea name="content" required><?= htmlspecialchars($notice['content']) ?></textarea>
+                        <input type="text" name="title" value="<?= htmlspecialchars($notice['title'] ?? '') ?>" required>
+                        <textarea name="content" required><?= htmlspecialchars($notice['content'] ?? '') ?></textarea>
                     </div>
                     <button type="submit" name="edit" class="edit-btn">✏ Update</button>
                     <button type="submit" name="delete" class="delete-btn">🗑 Delete</button>
@@ -183,3 +190,4 @@ $notices = $noticesCollection->find([], ['sort' => ['created_at' => -1]]);
     </div>
 </body>
 </html>
+
