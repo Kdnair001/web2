@@ -1,10 +1,15 @@
 <?php
 ob_start(); // Prevent output before headers
-session_start();
 
-// Secure session settings
+// Secure session settings (must be set BEFORE session_start)
 ini_set('session.cookie_httponly', 1);
 ini_set('session.cookie_secure', 1); // Enable only if using HTTPS
+
+// Start session only if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 session_regenerate_id(true);
 
 require 'vendor/autoload.php';
@@ -68,7 +73,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
