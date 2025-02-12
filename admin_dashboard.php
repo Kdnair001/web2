@@ -1,27 +1,31 @@
 <?php
-session_start();
 require 'db.php';
 
-// Check if user is admin
 if ($_SESSION['role'] !== 'admin') {
-    header("Location: login.php");
+    header("Location: index.php");
     exit();
 }
 
-// Fetch all posts
-$collection = $db->posts;
-$posts = $collection->find();
+$userCollection = $db->users;
+$users = $userCollection->find(['role' => 'user']);
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $userId = $_POST['user_id'];
+    $userCollection->updateOne(
+        ['_id' => new MongoDB\BSON\ObjectId($userId)],
+        ['$set' => ['role' => 'admin']]
+    );
+    echo "✅ User promoted to admin!";
+}
+
 ?>
 
 <h1>Admin Dashboard</h1>
-<a href="add_post.php">Add New Post</a> | <a href="logout.php">Logout</a>
-
-<h2>Manage Posts</h2>
-<?php foreach ($posts as $post): ?>
-    <div>
-        <h3><?= $post['title'] ?></h3>
-        <p><?= $post['content'] ?></p>
-        <a href="edit_post.php?id=<?= $post['_id'] ?>">Edit</a> | 
-        <a href="delete_post.php?id=<?= $post['_id'] ?>">Delete</a>
-    </div>
-<?php endforeach; ?>
+<form method="POST">
+    <select name="user_id">
+        <?php foreach ($users as $user): ?>
+            <option value="<?= $user['_id'] ?>"><?= htmlspecialchars($user['email']) ?></option>
+        <?php endforeach; ?>
+    </select>
+    <button type="submit">Promote to Admin</button>
+</form>
