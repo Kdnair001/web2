@@ -5,7 +5,14 @@ FROM php:8.1-apache
 RUN apt-get update && apt-get install -y \
     unzip \
     git \
+    libcurl4-openssl-dev \
+    pkg-config \
+    libssl-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# Install MongoDB PHP extension
+RUN pecl install mongodb \
+    && docker-php-ext-enable mongodb
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -28,3 +35,5 @@ EXPOSE 80
 
 # Start Apache
 CMD ["apache2-foreground"]
+
+
