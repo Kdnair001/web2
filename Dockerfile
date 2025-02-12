@@ -1,16 +1,30 @@
+# Use an official PHP image with Apache
 FROM php:8.1-apache
 
-# Set working directory
-WORKDIR /var/www/html/
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    unzip \
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy project files to the container
-COPY . /var/www/html/
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Install required PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql
+# Set working directory inside the container
+WORKDIR /var/www/html
+
+# Copy application files to the container
+COPY . /var/www/html
+
+# Install PHP dependencies using Composer
+RUN composer install --no-dev --optimize-autoloader
+
+# Ensure correct permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
 
 # Expose port 80
 EXPOSE 80
 
-# Start Apache server
+# Start Apache
 CMD ["apache2-foreground"]
