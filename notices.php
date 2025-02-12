@@ -20,7 +20,7 @@ $notices = $noticeCollection->find([], ['sort' => ['created_at' => -1]]);
             text-align: center;
         }
         .container {
-            width: 60%;
+            width: 80%;
             margin: auto;
             background: white;
             padding: 20px;
