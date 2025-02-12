@@ -1,7 +1,21 @@
 <?php
 ob_start(); // Prevent output before headers
 session_start();
+
+// Secure session settings
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_secure', 1); // Enable only if using HTTPS
+session_regenerate_id(true);
+
 require 'vendor/autoload.php';
+
+// Validate Environment Variables
+$requiredEnv = ['MONGO_USER', 'MONGO_PASSWORD', 'MONGO_CLUSTER', 'MONGO_DATABASE'];
+foreach ($requiredEnv as $env) {
+    if (!getenv($env)) {
+        die("❌ Missing environment variable: $env");
+    }
+}
 
 // MongoDB Credentials from Environment Variables
 $username = getenv("MONGO_USER");
@@ -18,15 +32,25 @@ try {
     die("❌ Database connection failed: " . $e->getMessage());
 }
 
-// Login Logic
+// Generate CSRF Token
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $error = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        die("❌ Invalid CSRF token!");
+    }
+
     $email = trim($_POST['email']);
     $password = trim($_POST['password']);
 
     if (!empty($email) && !empty($password)) {
         $collection = $db->users;
-        $user = $collection->findOne(['email' => $email]);
+
+        // Case-insensitive email lookup
+        $user = $collection->findOne(['email' => new MongoDB\BSON\Regex('^' . preg_quote($email) . '$', 'i')]);
 
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['logged_in'] = true;
@@ -95,6 +119,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h2>Login</h2>
         <?php if (!empty($error)) echo "<p class='error'>$error</p>"; ?>
         <form method="POST">
+            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
             <input type="email" name="email" placeholder="Email" required>
             <input type="password" name="password" placeholder="Password" required>
             <button type="submit">Login</button>
@@ -103,4 +128,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 </body>
 </html>
-
