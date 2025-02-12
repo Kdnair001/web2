@@ -2,46 +2,46 @@
 session_start();
 require 'db.php';
 
-// Check if user is logged in
-if (!isset($_SESSION['user'])) {
+// Ensure user is logged in
+if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
 
-// Get logged-in user details from the database
+// Get logged-in user details
 $collection = $db->users;
-$loggedInUser = $collection->findOne(['email' => $_SESSION['user']['email']]);
+$loggedInUser = $collection->findOne(['_id' => new MongoDB\BSON\ObjectId($_SESSION['user_id'])]);
 
-// Check if the logged-in user is an admin
+// Restrict access to admins
 if (!$loggedInUser || $loggedInUser['role'] !== 'admin') {
     die("❌ Access denied. Admins only.");
 }
 
-// Define the main admin (owner)
+// Define main admin (owner)
 $main_admin_email = "karthikdnair001@gmail.com";
 
-// Fetch all users
-$users = $collection->find([]);
+// Fetch all users except the main admin (to prevent self-edit)
+$users = $collection->find();
 
-// Handle role updates securely
+// Handle role updates
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_role'])) {
     $email = $_POST['email'];
     $new_role = $_POST['role'];
 
-    // Prevent non-owner admins from assigning admin roles
+    // Only the main admin can assign admin roles
     if ($new_role === 'admin' && $loggedInUser['email'] !== $main_admin_email) {
         die("❌ Only the owner (Karthik D Nair) can assign admin roles.");
     }
 
-    // Prevent the owner from accidentally removing their own admin role
+    // Prevent owner from losing admin status
     if ($email === $main_admin_email && $new_role !== 'admin') {
         die("❌ The owner cannot remove their own admin role.");
     }
 
-    // Update role in MongoDB
+    // Update user role
     $collection->updateOne(['email' => $email], ['$set' => ['role' => $new_role]]);
     
-    // Refresh page to reflect changes
+    // Refresh to reflect changes
     header("Location: admin_panel.php");
     exit();
 }
@@ -57,6 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_role'])) {
     <h1>Admin Panel</h1>
     <p>Welcome, <strong><?= htmlspecialchars($loggedInUser['name']) ?></strong> (<?= htmlspecialchars($loggedInUser['email']) ?>)</p>
 
+    <h2>User Management</h2>
     <table border="1">
         <tr>
             <th>Name</th>
@@ -70,6 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_role'])) {
             <td><?= htmlspecialchars($user['email']) ?></td>
             <td><?= htmlspecialchars($user['role']) ?></td>
             <td>
+                <?php if ($user['email'] !== $main_admin_email): ?>
                 <form method="POST">
                     <input type="hidden" name="email" value="<?= $user['email'] ?>">
                     <select name="role">
@@ -78,12 +80,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_role'])) {
                     </select>
                     <button type="submit" name="update_role">Update Role</button>
                 </form>
+                <?php else: ?>
+                    <strong>Owner</strong>
+                <?php endif; ?>
             </td>
         </tr>
         <?php endforeach; ?>
     </table>
 
     <br>
-    <a href="logout.php">Logout</a>
+    <a href="index.php">Back to Home</a> | <a href="logout.php">Logout</a>
 </body>
 </html>
