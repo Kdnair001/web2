@@ -2,22 +2,30 @@
 session_start();
 require 'vendor/autoload.php';
 
+// Secure session
+session_regenerate_id(true);
+
 // Ensure the user is logged in
 if (!isset($_SESSION['logged_in']) || $_SESSION['role'] !== 'admin') {
     header("Location: index.php");
     exit();
 }
 
-// Ensure only the main admin can promote users
-if ($_SESSION['email'] !== 'karthikdnair001@gmail.com') {
+// Prevent unauthorized access
+$email = $_SESSION['email'] ?? '';
+if ($email !== 'karthikdnair001@gmail.com') {
     die("❌ Access Denied! Only the main admin can add new admins.");
+}
+
+// CSRF Protection: Generate token if not set
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
 // MongoDB Connection
 $requiredEnv = ['MONGO_USER', 'MONGO_PASSWORD', 'MONGO_CLUSTER', 'MONGO_DATABASE'];
 foreach ($requiredEnv as $env) {
-    $value = getenv($env) ?: ($_ENV[$env] ?? null);
-    if (!$value) {
+    if (!getenv($env) && !isset($_ENV[$env])) {
         die("❌ Missing environment variable: $env");
     }
 }
@@ -27,17 +35,25 @@ $password = getenv("MONGO_PASSWORD") ?: $_ENV["MONGO_PASSWORD"];
 $cluster = getenv("MONGO_CLUSTER") ?: $_ENV["MONGO_CLUSTER"];
 $database = getenv("MONGO_DATABASE") ?: $_ENV["MONGO_DATABASE"];
 
-$mongoUri = "mongodb+srv://$username:$password@$cluster/$database?retryWrites=true&w=majority&appName=Cluster0";
-$client = new MongoDB\Client($mongoUri);
-$db = $client->selectDatabase($database);
-$collection = $db->users;
+try {
+    $mongoUri = "mongodb+srv://$username:$password@$cluster/$database?retryWrites=true&w=majority&appName=Cluster0";
+    $client = new MongoDB\Client($mongoUri);
+    $db = $client->selectDatabase($database);
+    $collection = $db->users;
+} catch (Exception $e) {
+    die("❌ Database connection failed: " . $e->getMessage());
+}
 
-// Handle form submission
+$message = "";
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $email = trim($_POST['email']);
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        die("❌ Invalid CSRF token!");
+    }
 
-    if (!empty($email)) {
-        $user = $collection->findOne(['email' => new MongoDB\BSON\Regex("^$email$", 'i')]);
+    $userEmail = trim($_POST['email']);
+
+    if (!empty($userEmail)) {
+        $user = $collection->findOne(['email' => new MongoDB\BSON\Regex("^$userEmail$", 'i')]);
 
         if ($user) {
             if ($user['role'] === 'admin') {
@@ -106,8 +122,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <body>
     <div class="container">
         <h2>Admin Panel - Add New Admin</h2>
-        <?php if (isset($message)) echo "<p class='message'>$message</p>"; ?>
+        <?php if (!empty($message)) echo "<p class='message'>$message</p>"; ?>
         <form method="POST">
+            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
             <input type="email" name="email" placeholder="User Email" required>
             <button type="submit">Promote to Admin</button>
         </form>
@@ -115,3 +132,4 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </div>
 </body>
 </html>
+
