@@ -67,12 +67,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $_SESSION['email'] = $email; // Store email in session
             $_SESSION['role'] = $user['role'];
 
-            // Redirect based on role
-            if ($_SESSION['role'] === 'admin') {
-                header("Location: admin_dashboard.php");
-            } else {
-                header("Location: user_dashboard.php");
-            }
+            // Redirect all users to index.php
+            header("Location: index.php");
             exit();
         } else {
             $error = "❌ Invalid email or password!";
