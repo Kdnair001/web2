@@ -31,13 +31,13 @@ $noticesCollection = $db->notices;
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['create'])) {
     $title = trim($_POST['title']);
     $content = trim($_POST['content']);
-    $adminName = $_SESSION['name'] ?? 'Unknown';
+    $author = $_SESSION['email'] ?? "Admin"; // Store the email of the admin who posts the notice
 
     if (!empty($title) && !empty($content)) {
         $noticesCollection->insertOne([
-            'title' => htmlspecialchars($title),
-            'content' => htmlspecialchars($content),
-            'posted_by' => $adminName,
+            'title' => $title,
+            'content' => $content,
+            'author' => $author,
             'created_at' => new MongoDB\BSON\UTCDateTime()
         ]);
         header("Location: admin_dashboard.php");
@@ -56,7 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['edit'])) {
     if (!empty($title) && !empty($content)) {
         $noticesCollection->updateOne(
             ['_id' => $noticeId],
-            ['$set' => ['title' => htmlspecialchars($title), 'content' => htmlspecialchars($content)]]
+            ['$set' => ['title' => $title, 'content' => $content]]
         );
         header("Location: admin_dashboard.php");
         exit();
@@ -168,7 +168,7 @@ $notices = $noticesCollection->find([], ['sort' => ['created_at' => -1]]);
                 <p><?= nl2br(htmlspecialchars($notice['content'] ?? 'No Content')) ?></p>
                 <p>
                     <small>
-                        Posted by: <?= htmlspecialchars($notice['posted_by'] ?? 'Unknown') ?> |
+                        Posted by: <?= htmlspecialchars($notice['author'] ?? 'Admin') ?> |
                         <?= isset($notice['created_at']) ? date('Y-m-d H:i:s', $notice['created_at']->toDateTime()->getTimestamp()) : 'Unknown Date' ?>
                     </small>
                 </p>
@@ -190,4 +190,3 @@ $notices = $noticesCollection->find([], ['sort' => ['created_at' => -1]]);
     </div>
 </body>
 </html>
-
