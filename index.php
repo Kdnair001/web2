@@ -22,7 +22,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     <!-- Navigation Bar -->
     <frame src="navbar.php" name="navbar" scrolling="no" noresize>
 
-    <frameset cols="25%,75%">
+    <frameset cols="20%,80%">
         <!-- Sidebar for Notices -->
         <frame src="notices.php" name="notices" noresize>
 
