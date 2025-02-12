@@ -1,4 +1,5 @@
 <?php
+ob_start(); // Start output buffering
 session_start();
 require 'db.php';
 
@@ -24,26 +25,35 @@ $posts = $postCollection->find([]);
 
 // Handle adding new post
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_post'])) {
-    $title = $_POST['title'];
-    $content = $_POST['content'];
+    $title = trim($_POST['title']);
+    $content = trim($_POST['content']);
 
-    $postCollection->insertOne([
-        'title' => $title,
-        'content' => $content,
-        'created_at' => new MongoDB\BSON\UTCDateTime()
-    ]);
-
-    header("Location: admin_dashboard.php?success=PostAdded");
-    exit();
+    if (!empty($title) && !empty($content)) {
+        $postCollection->insertOne([
+            'title' => $title,
+            'content' => $content,
+            'created_at' => new MongoDB\BSON\UTCDateTime()
+        ]);
+        header("Location: admin_dashboard.php?success=PostAdded");
+        exit();
+    } else {
+        header("Location: admin_dashboard.php?error=EmptyFields");
+        exit();
+    }
 }
 
 // Handle deleting post
 if (isset($_GET['delete'])) {
     $postId = $_GET['delete'];
 
-    $postCollection->deleteOne(['_id' => new MongoDB\BSON\ObjectId($postId)]);
-    header("Location: admin_dashboard.php?success=PostDeleted");
-    exit();
+    try {
+        $postCollection->deleteOne(['_id' => new MongoDB\BSON\ObjectId($postId)]);
+        header("Location: admin_dashboard.php?success=PostDeleted");
+        exit();
+    } catch (Exception $e) {
+        header("Location: admin_dashboard.php?error=DeleteFailed");
+        exit();
+    }
 }
 ?>
 
@@ -60,6 +70,8 @@ if (isset($_GET['delete'])) {
 
     <?php if (isset($_GET['success'])): ?>
         <p style="color: green;">✅ <?= htmlspecialchars($_GET['success']) ?></p>
+    <?php elseif (isset($_GET['error'])): ?>
+        <p style="color: red;">❌ <?= htmlspecialchars($_GET['error']) ?></p>
     <?php endif; ?>
 
     <h2>Add New Post</h2>
@@ -92,3 +104,5 @@ if (isset($_GET['delete'])) {
     <a href="admin_panel.php">Go to Admin Panel</a> | <a href="logout.php">Logout</a>
 </body>
 </html>
+
+<?php ob_end_flush(); // Flush the output buffer ?>
