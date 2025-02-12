@@ -52,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         die("❌ Invalid CSRF token!");
     }
 
-    $email = trim($_POST['email']);
+    $email = trim(strtolower($_POST['email'])); // Store email in lowercase
     $password = trim($_POST['password']);
 
     if (!empty($email) && !empty($password)) {
@@ -64,10 +64,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['logged_in'] = true;
             $_SESSION['user_id'] = (string)$user['_id'];
+            $_SESSION['email'] = $email; // Store email in session
             $_SESSION['role'] = $user['role'];
 
-            // Redirect all users to index.php
-            header("Location: index.php");
+            // Redirect based on role
+            if ($_SESSION['role'] === 'admin') {
+                header("Location: admin_dashboard.php");
+            } else {
+                header("Location: user_dashboard.php");
+            }
             exit();
         } else {
             $error = "❌ Invalid email or password!";
@@ -137,4 +142,5 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </div>
 </body>
 </html>
+
 
