@@ -1,4 +1,5 @@
 <?php
+ob_start(); // Start output buffering to prevent "headers already sent" error
 session_start();
 require 'db.php';
 
@@ -16,6 +17,8 @@ if (!$user) {
     header("Location: logout.php"); // Logout if user is invalid
     exit();
 }
+
+ob_end_flush(); // Send output buffer
 ?>
 
 <!DOCTYPE html>
@@ -39,3 +42,4 @@ if (!$user) {
 
 </body>
 </html>
+
