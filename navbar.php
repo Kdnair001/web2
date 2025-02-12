@@ -37,6 +37,8 @@
         <a href="activities.php" target="main">Activities</a>
         <a href="departments.php" target="main">Departments</a>
         <a href="cesa.php" target="main">CESA</a>
+        <a href="user_dashboard.php" target="main">User Dashboard</a>
+        <a href="admin_dashboard.php" target="Admin Dashboard">CESA</a>
         <a href="logout.php" target="_top">Logout</a>
     </nav>
 </body>
