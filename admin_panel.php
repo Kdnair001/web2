@@ -1,47 +1,58 @@
 <?php
-session_start();
-require 'vendor/autoload.php';
+ob_start(); // Prevent output before headers
 
-// Secure session
+// Secure session settings
+if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.cookie_httponly', 1);
+    if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+        ini_set('session.cookie_secure', 1);
+    }
+    session_start();
+}
+
 session_regenerate_id(true);
 
-// Ensure the user is logged in
+require 'vendor/autoload.php';
+
+// Ensure the user is logged in and an admin
 if (!isset($_SESSION['logged_in']) || $_SESSION['role'] !== 'admin') {
     header("Location: index.php");
     exit();
 }
 
-// Prevent unauthorized access
-$email = $_SESSION['email'] ?? '';
-if ($email !== 'karthikdnair001@gmail.com') {
+// Only main admin can promote other users
+if ($_SESSION['email'] !== 'karthikdnair001@gmail.com') {
     die("❌ Access Denied! Only the main admin can add new admins.");
 }
 
-// CSRF Protection: Generate token if not set
-if (!isset($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-
-// MongoDB Connection
+// Validate Environment Variables
 $requiredEnv = ['MONGO_USER', 'MONGO_PASSWORD', 'MONGO_CLUSTER', 'MONGO_DATABASE'];
 foreach ($requiredEnv as $env) {
-    if (!getenv($env) && !isset($_ENV[$env])) {
+    $value = getenv($env) ?: ($_ENV[$env] ?? null);
+    if (!$value) {
         die("❌ Missing environment variable: $env");
     }
 }
 
+// MongoDB Credentials
 $username = getenv("MONGO_USER") ?: $_ENV["MONGO_USER"];
 $password = getenv("MONGO_PASSWORD") ?: $_ENV["MONGO_PASSWORD"];
 $cluster = getenv("MONGO_CLUSTER") ?: $_ENV["MONGO_CLUSTER"];
 $database = getenv("MONGO_DATABASE") ?: $_ENV["MONGO_DATABASE"];
 
+// MongoDB Connection
+$mongoUri = "mongodb+srv://$username:$password@$cluster/$database?retryWrites=true&w=majority&appName=Cluster0";
 try {
-    $mongoUri = "mongodb+srv://$username:$password@$cluster/$database?retryWrites=true&w=majority&appName=Cluster0";
     $client = new MongoDB\Client($mongoUri);
     $db = $client->selectDatabase($database);
     $collection = $db->users;
 } catch (Exception $e) {
     die("❌ Database connection failed: " . $e->getMessage());
+}
+
+// Generate CSRF Token if not set
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
 $message = "";
@@ -114,8 +125,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             background-color: #0056b3;
         }
         .message {
-            color: green;
             font-weight: bold;
+            color: <?= strpos($message, "❌") !== false ? "red" : "green" ?>;
         }
     </style>
 </head>
