@@ -126,7 +126,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_profile'])) {
             <button type="submit" name="update_profile">Update Profile</button>
         </form>
 
-        <p><a href="index.php">Back to Home</a> | <a href="logout.php">Logout</a></p>
+        <p><a href="index.php" target="_parent">Go Back to Home</a> | <a href="logout.php">Logout</a></p>
     </div>
 
 </body>
