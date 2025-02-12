@@ -32,3 +32,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <button type="submit">Login</button>
 </form>
 
+<!-- Add Register Link -->
+<p>Not a member? <a href="register.php">Register here</a></p>
+
