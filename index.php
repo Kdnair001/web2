@@ -1,3 +1,13 @@
+<?php
+session_start();
+
+// Redirect to login if user is not logged in
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header("Location: login.php");
+    exit();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,3 +34,4 @@
     <frame src="footer.php" name="footer" scrolling="no" noresize>
 </frameset>
 </html>
+
