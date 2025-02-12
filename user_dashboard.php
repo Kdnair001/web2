@@ -2,7 +2,8 @@
 session_start();
 require 'db.php';
 
-if (!isset($_SESSION['logged_in'])) {
+// Ensure user is logged in
+if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
@@ -10,7 +11,7 @@ if (!isset($_SESSION['logged_in'])) {
 $userCollection = $db->users;
 $user = $userCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($_SESSION['user_id'])]);
 
-// CSRF Token
+// Generate CSRF Token if not set
 if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
@@ -24,6 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_profile'])) {
         die("❌ Invalid CSRF token!");
     }
 
+    // Sanitize user input
     $newName = trim($_POST['name']);
     $newPassword = trim($_POST['password']);
     $confirmPassword = trim($_POST['confirm_password']);
@@ -35,7 +37,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_profile'])) {
     } elseif (!empty($newPassword) && $newPassword !== $confirmPassword) {
         $errorMessage = "❌ Passwords do not match!";
     } else {
-        $updateData = ['name' => $newName];
+        // Prepare update query
+        $updateData = ['name' => htmlspecialchars($newName)];
 
         if (!empty($newPassword)) {
             $updateData['password'] = password_hash($newPassword, PASSWORD_DEFAULT);
@@ -46,7 +49,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_profile'])) {
             ['$set' => $updateData]
         );
 
+        // Update session name
         $_SESSION['name'] = $newName;
+
+        // Generate new CSRF token after successful update
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+
         $successMessage = "✅ Profile updated successfully!";
     }
 }
