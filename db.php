@@ -1,4 +1,7 @@
 <?php
+// Start output buffering to prevent header issues
+ob_start();
+
 // Start session only if it's not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -20,9 +23,3 @@ try {
     die("❌ Database connection failed: " . $e->getMessage());
 }
 ?>
-
-
-
-
-
-
