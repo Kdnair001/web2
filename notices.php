@@ -1,10 +1,10 @@
-<?php
+<?php 
 require 'db.php';
 
 $noticeCollection = $db->notices;
 
 // Fetch all notices, sorted by most recent
-$notices = $noticeCollection->find([], ['sort' => ['posted_at' => -1]]);
+$notices = $noticeCollection->find([], ['sort' => ['created_at' => -1]]);
 ?>
 
 <!DOCTYPE html>
@@ -50,10 +50,10 @@ $notices = $noticeCollection->find([], ['sort' => ['posted_at' => -1]]);
         <?php foreach ($notices as $notice): ?>
             <div class="notice">
                 <h3><?= htmlspecialchars($notice['title'] ?? 'No Title') ?></h3>
-                <p><?= nl2br(htmlspecialchars($notice['message'] ?? 'No Content')) ?></p>
+                <p><?= nl2br(htmlspecialchars($notice['content'] ?? 'No Content')) ?></p>
                 <p class="meta">
-                    Posted by: <?= htmlspecialchars($notice['posted_by'] ?? 'Unknown') ?> |
-                    <?= isset($notice['posted_at']) ? date("Y-m-d H:i:s", $notice['posted_at']->toDateTime()->getTimestamp()) : 'Unknown Date' ?>
+                    Posted by: <?= htmlspecialchars($notice['author'] ?? 'Admin') ?> |
+                    <?= isset($notice['created_at']) ? date("Y-m-d H:i:s", $notice['created_at']->toDateTime()->getTimestamp()) : 'Unknown Date' ?>
                 </p>
             </div>
         <?php endforeach; ?>
