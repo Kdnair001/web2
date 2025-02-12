@@ -1,14 +1,15 @@
 <?php
 ob_start(); // Prevent output before headers
 
-// Secure session settings (must be set BEFORE session_start)
-ini_set('session.cookie_httponly', 1);
-if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
-    ini_set('session.cookie_secure', 1); // Enable only if using HTTPS
-}
-
-// Start session only if not already started
+// Ensure session settings are set BEFORE session starts
 if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.cookie_httponly', 1);
+    
+    // Enable secure cookie only if HTTPS is detected
+    if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+        ini_set('session.cookie_secure', 1);
+    }
+
     session_start();
 }
 
@@ -19,16 +20,17 @@ require 'vendor/autoload.php';
 // Validate Environment Variables
 $requiredEnv = ['MONGO_USER', 'MONGO_PASSWORD', 'MONGO_CLUSTER', 'MONGO_DATABASE'];
 foreach ($requiredEnv as $env) {
-    if (!getenv($env)) {
+    $value = getenv($env) ?: ($_ENV[$env] ?? null); // Use $_ENV as a fallback
+    if (!$value) {
         die("❌ Missing environment variable: $env");
     }
 }
 
-// MongoDB Credentials from Environment Variables
-$username = getenv("MONGO_USER");
-$password = getenv("MONGO_PASSWORD");
-$cluster = getenv("MONGO_CLUSTER");
-$database = getenv("MONGO_DATABASE");
+// MongoDB Credentials
+$username = getenv("MONGO_USER") ?: $_ENV["MONGO_USER"];
+$password = getenv("MONGO_PASSWORD") ?: $_ENV["MONGO_PASSWORD"];
+$cluster = getenv("MONGO_CLUSTER") ?: $_ENV["MONGO_CLUSTER"];
+$database = getenv("MONGO_DATABASE") ?: $_ENV["MONGO_DATABASE"];
 
 // MongoDB Connection
 $mongoUri = "mongodb+srv://$username:$password@$cluster/$database?retryWrites=true&w=majority&appName=Cluster0";
@@ -39,13 +41,13 @@ try {
     die("❌ Database connection failed: " . $e->getMessage());
 }
 
-// Generate CSRF Token
+// Generate CSRF Token if not set
 if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
 $error = "";
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
         die("❌ Invalid CSRF token!");
     }
@@ -136,4 +138,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 </body>
 </html>
-
