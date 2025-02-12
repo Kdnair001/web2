@@ -1,34 +1,78 @@
 <?php
 session_start();
-require 'db.php';
+require 'vendor/autoload.php';
 
-// Ensure only admin can access
-if (!isset($_SESSION['user_id']) || $_SESSION['email'] !== 'karthikdnair001@gmail.com') {
-    header("Location: login.php");
+// Ensure the user is logged in and is an admin
+if (!isset($_SESSION['logged_in']) || $_SESSION['role'] !== 'admin') {
+    header("Location: index.php");
     exit();
 }
 
-$noticeCollection = $db->notices;
-$successMessage = "";
-$errorMessage = "";
-
-// Handle Notice Posting
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['post_notice'])) {
-    $noticeTitle = trim($_POST['title']);
-    $noticeMessage = trim($_POST['message']);
-
-    if (empty($noticeTitle) || empty($noticeMessage)) {
-        $errorMessage = "❌ Title and message cannot be empty!";
-    } else {
-        $noticeCollection->insertOne([
-            'title' => htmlspecialchars($noticeTitle),
-            'message' => htmlspecialchars($noticeMessage),
-            'posted_by' => $_SESSION['name'],
-            'posted_at' => new MongoDB\BSON\UTCDateTime()
-        ]);
-        $successMessage = "✅ Notice posted successfully!";
+// MongoDB Connection
+$requiredEnv = ['MONGO_USER', 'MONGO_PASSWORD', 'MONGO_CLUSTER', 'MONGO_DATABASE'];
+foreach ($requiredEnv as $env) {
+    $value = getenv($env) ?: ($_ENV[$env] ?? null);
+    if (!$value) {
+        die("❌ Missing environment variable: $env");
     }
 }
+
+$username = getenv("MONGO_USER") ?: $_ENV["MONGO_USER"];
+$password = getenv("MONGO_PASSWORD") ?: $_ENV["MONGO_PASSWORD"];
+$cluster = getenv("MONGO_CLUSTER") ?: $_ENV["MONGO_CLUSTER"];
+$database = getenv("MONGO_DATABASE") ?: $_ENV["MONGO_DATABASE"];
+
+$mongoUri = "mongodb+srv://$username:$password@$cluster/$database?retryWrites=true&w=majority&appName=Cluster0";
+$client = new MongoDB\Client($mongoUri);
+$db = $client->selectDatabase($database);
+$noticesCollection = $db->notices;
+
+// Handle Create Notice
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['create'])) {
+    $title = trim($_POST['title']);
+    $content = trim($_POST['content']);
+
+    if (!empty($title) && !empty($content)) {
+        $noticesCollection->insertOne([
+            'title' => $title,
+            'content' => $content,
+            'created_at' => new MongoDB\BSON\UTCDateTime()
+        ]);
+        header("Location: admin_dashboard.php");
+        exit();
+    } else {
+        $error = "❌ Title and content cannot be empty!";
+    }
+}
+
+// Handle Edit Notice
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['edit'])) {
+    $noticeId = new MongoDB\BSON\ObjectId($_POST['notice_id']);
+    $title = trim($_POST['title']);
+    $content = trim($_POST['content']);
+
+    if (!empty($title) && !empty($content)) {
+        $noticesCollection->updateOne(
+            ['_id' => $noticeId],
+            ['$set' => ['title' => $title, 'content' => $content]]
+        );
+        header("Location: admin_dashboard.php");
+        exit();
+    } else {
+        $error = "❌ Title and content cannot be empty!";
+    }
+}
+
+// Handle Delete Notice
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['delete'])) {
+    $noticeId = new MongoDB\BSON\ObjectId($_POST['notice_id']);
+    $noticesCollection->deleteOne(['_id' => $noticeId]);
+    header("Location: admin_dashboard.php");
+    exit();
+}
+
+// Fetch All Notices
+$notices = $noticesCollection->find([], ['sort' => ['created_at' => -1]]);
 ?>
 
 <!DOCTYPE html>
@@ -40,62 +84,102 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['post_notice'])) {
     <style>
         body {
             font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
             background-color: #f4f4f4;
-            text-align: center;
         }
         .container {
-            margin-top: 50px;
             background: white;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            width: 400px;
-            margin: auto;
+            width: 90%;
+            max-width: 800px;
         }
-        input, textarea, button {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+        .notice {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        .notice:last-child {
+            border-bottom: none;
         }
         button {
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .edit-btn {
             background-color: #007bff;
             color: white;
-            border: none;
-            cursor: pointer;
         }
-        button:hover {
-            background-color: #0056b3;
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
         }
-        .success {
-            color: green;
-            font-weight: bold;
+        .add-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
         }
-        .error {
-            color: red;
-            font-weight: bold;
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        input, textarea {
+            padding: 8px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
-
     <div class="container">
         <h2>Admin Dashboard</h2>
-        <hr>
 
-        <h3>Post a Notice</h3>
-        <?php if (!empty($errorMessage)) echo "<p class='error'>$errorMessage</p>"; ?>
-        <?php if (!empty($successMessage)) echo "<p class='success'>$successMessage</p>"; ?>
+        <!-- Manage Admins -->
+        <a href="admin_panel.php">
+            <button class="add-btn">👤 Manage Admins</button>
+        </a>
 
+        <h3>Create New Notice</h3>
         <form method="POST">
-            <input type="text" name="title" placeholder="Notice Title" required>
-            <textarea name="message" placeholder="Notice Message" rows="4" required></textarea>
-            <button type="submit" name="post_notice">Post Notice</button>
+            <div class="form-group">
+                <input type="text" name="title" placeholder="Notice Title" required>
+                <textarea name="content" placeholder="Notice Content" required></textarea>
+            </div>
+            <button type="submit" name="create" class="add-btn">➕ Post Notice</button>
         </form>
 
-        <p><a href="index.php">Back to Home</a> | <a href="logout.php">Logout</a></p>
-    </div>
+        <h3>All Notices</h3>
 
+        <?php foreach ($notices as $notice): ?>
+            <div class="notice">
+                <h4><?= htmlspecialchars($notice['title']) ?></h4>
+                <p><?= nl2br(htmlspecialchars($notice['content'])) ?></p>
+                <p><small>Posted on: <?= date('Y-m-d H:i:s', $notice['created_at']->toDateTime()->getTimestamp()) ?></small></p>
+
+                <!-- Edit Form -->
+                <form method="POST">
+                    <input type="hidden" name="notice_id" value="<?= $notice['_id'] ?>">
+                    <div class="form-group">
+                        <input type="text" name="title" value="<?= htmlspecialchars($notice['title']) ?>" required>
+                        <textarea name="content" required><?= htmlspecialchars($notice['content']) ?></textarea>
+                    </div>
+                    <button type="submit" name="edit" class="edit-btn">✏ Update</button>
+                    <button type="submit" name="delete" class="delete-btn">🗑 Delete</button>
+                </form>
+            </div>
+        <?php endforeach; ?>
+
+        <p><a href="index.php">🏠 Back to Home</a></p>
+    </div>
 </body>
 </html>
