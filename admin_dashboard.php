@@ -179,7 +179,7 @@ $notices = $noticesCollection->find([], ['sort' => ['created_at' => -1]]);
             </div>
         <?php endforeach; ?>
 
-        <p><a href="index.php">🏠 Back to Home</a></p>
+        <p><a href="index.php" target="_parent">🏠 Back to Home</a></p>
     </div>
 </body>
 </html>
