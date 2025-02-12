@@ -1,0 +1,32 @@
+# Deny direct access to sensitive files
+<FilesMatch "(db.php|auth.php|config.php)">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Restrict access to /includes/ directory
+<Directory "/includes">
+    Order Allow,Deny
+    Deny from all
+</Directory>
+
+# Restrict access to /admin/ directory (only allow logged-in admins)
+<Directory "/admin">
+    Order Allow,Deny
+    Deny from all
+    Allow from 127.0.0.1  # Modify if needed
+</Directory>
+
+# Redirect all requests to index.php (for clean URLs)
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+
+# Prevent directory listing
+Options -Indexes
+
+# Enable Gzip compression (improves performance)
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain text/html text/css application/javascript application/json image/svg+xml
+</IfModule>
