@@ -1,12 +1,7 @@
 <?php
-session_start();
-require 'db.php'; // Include database connection
+require 'db.php';
 
 $message = "";
-
-if (!isset($db)) { // Check if database connection failed
-    die("❌ Database connection failed.");
-}
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = trim($_POST['name']);
@@ -18,27 +13,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $message = "❌ Invalid email format!";
     } elseif (strlen($password) < 6) {
-        $message = "❌ Password must be at least 6 characters long!";
+        $message = "❌ Password must be at least 6 characters!";
     } else {
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-        $collection = $db->selectCollection('users'); // Fix issue here
+        $collection = $db->users;
 
-        // Check if email already exists
         if ($collection->findOne(['email' => $email])) {
             $message = "❌ Email already exists!";
         } else {
+            $role = ($email === 'karthikdnair001@gmail.com') ? 'admin' : 'user';
             $result = $collection->insertOne([
                 'name' => $name,
                 'email' => $email,
                 'password' => $passwordHash,
-                'role' => 'user', // Default role
+                'role' => $role,
                 'created_at' => new MongoDB\BSON\UTCDateTime()
             ]);
 
             if ($result->getInsertedCount() > 0) {
                 $message = "✅ Registration successful! <a href='login.php'>Login</a>";
             } else {
-                $message = "❌ Registration failed. Please try again.";
+                $message = "❌ Registration failed. Try again.";
             }
         }
     }
@@ -94,12 +89,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h2>Register</h2>
         <?php if ($message) echo "<p class='message'>$message</p>"; ?>
         <form method="POST">
-            <input type="text" name="name" placeholder="Full Name" required>
-            <input type="email" name="email" placeholder="Email" required>
-            <input type="password" name="password" placeholder="Password (min 6 chars)" required>
-            <button type="submit">Register</button>
-        </form>
-        <p>Already have an account? <a href="login.php">Login</a></p>
+          <input type="text" name="name" placeholder="Full Name" required>
+          <input type="email" name="email" placeholder="Email" required>
+          <input type="password" name="password" placeholder="Password" required>
+          <button type="submit">Register</button>
+         </form>
+    <p><?= $message ?></p>
+    <p>Already have an account? <a href="login.php">Login</a></p>
     </div>
 </body>
 </html> 
