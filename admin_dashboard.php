@@ -1,58 +1,32 @@
 <?php
-ob_start(); // Start output buffering
 session_start();
 require 'db.php';
 
-// Ensure user is logged in
-if (!isset($_SESSION['user_id'])) {
+// Ensure only admin can access
+if (!isset($_SESSION['user_id']) || $_SESSION['email'] !== 'karthikdnair001@gmail.com') {
     header("Location: login.php");
     exit();
 }
 
-// Get logged-in user details
-$collection = $db->users;
-$loggedInUser = $collection->findOne(['_id' => new MongoDB\BSON\ObjectId($_SESSION['user_id'])]);
+$noticeCollection = $db->notices;
+$successMessage = "";
+$errorMessage = "";
 
-// Restrict access to admins
-if (!$loggedInUser || $loggedInUser['role'] !== 'admin') {
-    header("Location: index.php");
-    exit();
-}
+// Handle Notice Posting
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['post_notice'])) {
+    $noticeTitle = trim($_POST['title']);
+    $noticeMessage = trim($_POST['message']);
 
-// Fetch all posts
-$postCollection = $db->posts;
-$posts = $postCollection->find([]);
-
-// Handle adding new post
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_post'])) {
-    $title = trim($_POST['title']);
-    $content = trim($_POST['content']);
-
-    if (!empty($title) && !empty($content)) {
-        $postCollection->insertOne([
-            'title' => $title,
-            'content' => $content,
-            'created_at' => new MongoDB\BSON\UTCDateTime()
-        ]);
-        header("Location: admin_dashboard.php?success=PostAdded");
-        exit();
+    if (empty($noticeTitle) || empty($noticeMessage)) {
+        $errorMessage = "❌ Title and message cannot be empty!";
     } else {
-        header("Location: admin_dashboard.php?error=EmptyFields");
-        exit();
-    }
-}
-
-// Handle deleting post
-if (isset($_GET['delete'])) {
-    $postId = $_GET['delete'];
-
-    try {
-        $postCollection->deleteOne(['_id' => new MongoDB\BSON\ObjectId($postId)]);
-        header("Location: admin_dashboard.php?success=PostDeleted");
-        exit();
-    } catch (Exception $e) {
-        header("Location: admin_dashboard.php?error=DeleteFailed");
-        exit();
+        $noticeCollection->insertOne([
+            'title' => htmlspecialchars($noticeTitle),
+            'message' => htmlspecialchars($noticeMessage),
+            'posted_by' => $_SESSION['name'],
+            'posted_at' => new MongoDB\BSON\UTCDateTime()
+        ]);
+        $successMessage = "✅ Notice posted successfully!";
     }
 }
 ?>
@@ -63,46 +37,65 @@ if (isset($_GET['delete'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        .container {
+            margin-top: 50px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            margin: auto;
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <h1>Admin Dashboard</h1>
-    <p>Welcome, <strong><?= htmlspecialchars($loggedInUser['name']) ?></strong> (<?= htmlspecialchars($loggedInUser['email']) ?>)</p>
 
-    <?php if (isset($_GET['success'])): ?>
-        <p style="color: green;">✅ <?= htmlspecialchars($_GET['success']) ?></p>
-    <?php elseif (isset($_GET['error'])): ?>
-        <p style="color: red;">❌ <?= htmlspecialchars($_GET['error']) ?></p>
-    <?php endif; ?>
+    <div class="container">
+        <h2>Admin Dashboard</h2>
+        <hr>
 
-    <h2>Add New Post</h2>
-    <form method="POST">
-        <input type="text" name="title" placeholder="Post Title" required>
-        <textarea name="content" placeholder="Content" required></textarea>
-        <button type="submit" name="add_post">Add Post</button>
-    </form>
+        <h3>Post a Notice</h3>
+        <?php if (!empty($errorMessage)) echo "<p class='error'>$errorMessage</p>"; ?>
+        <?php if (!empty($successMessage)) echo "<p class='success'>$successMessage</p>"; ?>
 
-    <h2>Existing Posts</h2>
-    <table border="1">
-        <tr>
-            <th>Title</th>
-            <th>Content</th>
-            <th>Actions</th>
-        </tr>
-        <?php foreach ($posts as $post): ?>
-        <tr>
-            <td><?= htmlspecialchars($post['title']) ?></td>
-            <td><?= htmlspecialchars($post['content']) ?></td>
-            <td>
-                <a href="edit_post.php?id=<?= $post['_id'] ?>">✏️ Edit</a> | 
-                <a href="admin_dashboard.php?delete=<?= $post['_id'] ?>" onclick="return confirm('Are you sure?')">🗑️ Delete</a>
-            </td>
-        </tr>
-        <?php endforeach; ?>
-    </table>
+        <form method="POST">
+            <input type="text" name="title" placeholder="Notice Title" required>
+            <textarea name="message" placeholder="Notice Message" rows="4" required></textarea>
+            <button type="submit" name="post_notice">Post Notice</button>
+        </form>
 
-    <br>
-    <a href="admin_panel.php">Go to Admin Panel</a> | <a href="logout.php">Logout</a>
+        <p><a href="index.php">Back to Home</a> | <a href="logout.php">Logout</a></p>
+    </div>
+
 </body>
 </html>
-
-<?php ob_end_flush(); // Flush the output buffer ?>
