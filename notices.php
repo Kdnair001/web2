@@ -2,22 +2,64 @@
 require 'db.php';
 
 $noticeCollection = $db->notices;
+
+// Fetch all notices, sorted by most recent
 $notices = $noticeCollection->find([], ['sort' => ['posted_at' => -1]]);
-
-foreach ($notices as $notice) {
-    // Ensure values exist before using them
-    $title = isset($notice['title']) ? htmlspecialchars($notice['title']) : "No Title";
-    $message = isset($notice['message']) ? htmlspecialchars($notice['message']) : "No Message";
-    $postedBy = isset($notice['posted_by']) ? htmlspecialchars($notice['posted_by']) : "Unknown";
-    $postedAt = isset($notice['posted_at']) && $notice['posted_at'] instanceof MongoDB\BSON\UTCDateTime 
-                ? $notice['posted_at']->toDateTime()->format('Y-m-d H:i:s') 
-                : "Unknown Date";
-
-    echo "<div class='notice'>";
-    echo "<h3>$title</h3>";
-    echo "<p>$message</p>";
-    echo "<small>Posted by: $postedBy | $postedAt</small>";
-    echo "</div>";
-}
 ?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notices</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        .container {
+            width: 60%;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .notice {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        .notice h3 {
+            margin: 0;
+            color: #007bff;
+        }
+        .meta {
+            font-size: 0.9em;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Notices</h2>
+
+        <?php foreach ($notices as $notice): ?>
+            <div class="notice">
+                <h3><?= htmlspecialchars($notice['title'] ?? 'No Title') ?></h3>
+                <p><?= nl2br(htmlspecialchars($notice['message'] ?? 'No Content')) ?></p>
+                <p class="meta">
+                    Posted by: <?= htmlspecialchars($notice['posted_by'] ?? 'Unknown') ?> |
+                    <?= isset($notice['posted_at']) ? date("Y-m-d H:i:s", $notice['posted_at']->toDateTime()->getTimestamp()) : 'Unknown Date' ?>
+                </p>
+            </div>
+        <?php endforeach; ?>
+
+    </div>
+
+</body>
+</html>
 
