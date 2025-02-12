@@ -1,5 +1,9 @@
 <?php
-session_start();
+// Start session only if it's not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require 'vendor/autoload.php';
 
 // MongoDB Connection
@@ -16,6 +20,7 @@ try {
     die("❌ Database connection failed: " . $e->getMessage());
 }
 ?>
+
 
 
 
