@@ -52,8 +52,7 @@ $notices = $noticeCollection->find([], ['sort' => ['created_at' => -1]]);
                 <h3><?= htmlspecialchars($notice['title'] ?? 'No Title') ?></h3>
                 <p><?= nl2br(htmlspecialchars($notice['content'] ?? 'No Content')) ?></p>
                 <p class="meta">
-                    Posted by: <?= htmlspecialchars($notice['author'] ?? 'Admin') ?> |
-                    <?= isset($notice['created_at']) ? date("Y-m-d H:i:s", $notice['created_at']->toDateTime()->getTimestamp()) : 'Unknown Date' ?>
+              Posted by: <?= htmlspecialchars($notice['author'] ?? 'Admin') ?> | <?= isset($notice['created_at']) ? date("H:i:s, d/m/Y", $notice['created_at']->toDateTime()->setTimezone(new DateTimeZone('Asia/Kolkata'))->getTimestamp()) : 'Unknown Date' ?>
                 </p>
             </div>
         <?php endforeach; ?>
