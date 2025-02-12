@@ -3,7 +3,9 @@ ob_start(); // Prevent output before headers
 
 // Secure session settings (must be set BEFORE session_start)
 ini_set('session.cookie_httponly', 1);
-ini_set('session.cookie_secure', 1); // Enable only if using HTTPS
+if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+    ini_set('session.cookie_secure', 1); // Enable only if using HTTPS
+}
 
 // Start session only if not already started
 if (session_status() === PHP_SESSION_NONE) {
@@ -32,13 +34,13 @@ $database = getenv("MONGO_DATABASE");
 $mongoUri = "mongodb+srv://$username:$password@$cluster/$database?retryWrites=true&w=majority&appName=Cluster0";
 try {
     $client = new MongoDB\Client($mongoUri);
-    $db = $client->$database;
+    $db = $client->selectDatabase($database);
 } catch (Exception $e) {
     die("❌ Database connection failed: " . $e->getMessage());
 }
 
 // Generate CSRF Token
-if (empty($_SESSION['csrf_token'])) {
+if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
@@ -55,7 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $collection = $db->users;
 
         // Case-insensitive email lookup
-        $user = $collection->findOne(['email' => new MongoDB\BSON\Regex('^' . preg_quote($email) . '$', 'i')]);
+        $user = $collection->findOne(['email' => new MongoDB\BSON\Regex("^$email$", 'i')]);
 
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['logged_in'] = true;
@@ -63,7 +65,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['role'] = $user['role'];
 
             // Redirect based on role
-            header("Location: " . ($user['role'] === 'admin' ? "admin_dashboard.php" : "user_dashboard.php"));
+            $redirect_url = ($user['role'] === 'admin') ? "admin_dashboard.php" : "user_dashboard.php";
+            header("Location: $redirect_url");
             exit();
         } else {
             $error = "❌ Invalid email or password!";
@@ -73,6 +76,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -132,3 +136,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 </body>
 </html>
+
