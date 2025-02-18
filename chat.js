@@ -15,15 +15,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function deleteMessage(messageId) {
     if (confirm("Are you sure you want to delete this message?")) {
-        fetch(`delete_message.php?id=${messageId}`, { method: "GET" })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById(`message-${messageId}`).remove();
-                } else {
-                    alert("Failed to delete message.");
-                }
-            });
+        fetch("delete_message.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `message_id=${messageId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById(`message-${messageId}`).remove();
+            } else {
+                alert("Failed to delete message.");
+            }
+        });
     }
 }
 
