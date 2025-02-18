@@ -43,6 +43,5 @@ $messages = $messageCollection->find([], ['sort' => ['timestamp' => -1]]);
         <input type="text" name="message" id="message" placeholder="Type your message..." required>
         <button type="submit">Send</button>
     </form>
-
 </body>
 </html>
