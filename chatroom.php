@@ -27,10 +27,12 @@ $messages = $messageCollection->find([], ['sort' => ['timestamp' => -1]]);
     <h1>Chatroom</h1>
     <div id="chat-box">
         <?php foreach ($messages as $message): ?>
-            <div class="message">
+            <div class="message" id="message-<?= $message['_id'] ?>">
                 <strong><?= htmlspecialchars($message['username']) ?>:</strong>
-                <?= htmlspecialchars($message['message']) ?>
+                <span id="text-<?= $message['_id'] ?>"><?= htmlspecialchars($message['message']) ?></span>
+                
                 <?php if ($message['user_id'] == $_SESSION['user_id'] || $user['role'] === 'admin'): ?>
+                    <button onclick="editMessage('<?= $message['_id'] ?>')" class="edit-btn">Edit</button>
                     <button onclick="deleteMessage('<?= $message['_id'] ?>')">Delete</button>
                 <?php endif; ?>
             </div>
