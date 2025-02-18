@@ -13,6 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $message = $messageCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($messageId)]);
 
     if ($message) {
+        // Ensure session role is correctly checked
         if ($message['user_id'] == $_SESSION['user_id'] || $_SESSION['role'] === 'admin') {
             $messageCollection->updateOne(
                 ['_id' => new MongoDB\BSON\ObjectId($messageId)],
@@ -25,3 +26,4 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 
 echo json_encode(["success" => false]);
+?>
