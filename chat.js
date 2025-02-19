@@ -28,9 +28,15 @@ function sendMessage(messageText) {
             const chatBox = document.getElementById("chat-box");
             const messageDiv = document.createElement("div");
             messageDiv.classList.add("message");
-            messageDiv.innerHTML = `<strong>${data.username}:</strong> <span id="text-${data.messageId}">${data.message}</span>
-            <button onclick="editMessage('${data.messageId}')" class="edit-btn">Edit</button>
-            <button onclick="deleteMessage('${data.messageId}')">Delete</button>`;
+            messageDiv.id = `message-${data.messageId}`; // Assign unique message ID to div
+
+            messageDiv.innerHTML = `
+                <strong>${data.username}:</strong> 
+                <span id="text-${data.messageId}">${data.message}</span>
+                <button onclick="editMessage('${data.messageId}')" class="edit-btn">Edit</button>
+                <button onclick="deleteMessage('${data.messageId}')">Delete</button>
+            `;
+
             chatBox.prepend(messageDiv); // Prepend to add new messages at the top
         } else {
             alert("Failed to send message.");
