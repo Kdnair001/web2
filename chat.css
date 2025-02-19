@@ -22,6 +22,7 @@ body {
     flex-direction: column;
     padding: 25px;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 /* Header */
@@ -49,7 +50,6 @@ h1 {
     border: 1px solid #ddd;
     display: flex;
     flex-direction: column;
-    align-items: center;
 }
 
 /* Individual Messages */
@@ -60,8 +60,8 @@ h1 {
     border-radius: 12px;
     transition: transform 0.3s ease, background-color 0.3s ease;
     position: relative;
-    width: 80%;
-    max-width: 100%;
+    width: 100%;
+    max-width: 90%;
     box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.05);
 }
 
@@ -99,7 +99,7 @@ button {
     background-color: #0072ff;
     color: white;
     border: none;
-    padding: 10px 15px;
+    padding: 8px 12px;
     cursor: pointer;
     border-radius: 8px;
     font-size: 14px;
