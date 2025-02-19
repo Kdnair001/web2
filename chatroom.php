@@ -10,8 +10,16 @@ if (!isset($_SESSION['logged_in'])) {
 $userCollection = $db->users;
 $user = $userCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($_SESSION['user_id'])]);
 
-$messageCollection = $db->messages;
-$messages = $messageCollection->find([], ['sort' => ['timestamp' => -1]]);
+// Limit the number of messages to avoid overloading the page
+$limit = 20;
+$messages = $messageCollection->find([], [
+    'limit' => $limit,
+    'sort' => ['timestamp' => -1]
+]);
+
+// Reverse the order so the latest messages appear at the bottom
+$messages = iterator_to_array($messages);
+$messages = array_reverse($messages);
 ?>
 
 <!DOCTYPE html>
@@ -24,24 +32,27 @@ $messages = $messageCollection->find([], ['sort' => ['timestamp' => -1]]);
     <script src="chat.js" defer></script>
 </head>
 <body>
-    <h1>Chatroom</h1>
-    <div id="chat-box">
-        <?php foreach ($messages as $message): ?>
-            <div class="message" id="message-<?= $message['_id'] ?>">
-                <strong><?= htmlspecialchars($message['username']) ?>:</strong>
-                <span id="text-<?= $message['_id'] ?>"><?= htmlspecialchars($message['message']) ?></span>
-                
-                <?php if ($message['user_id'] == $_SESSION['user_id'] || $user['role'] === 'admin'): ?>
-                    <button onclick="editMessage('<?= $message['_id'] ?>')" class="edit-btn">Edit</button>
-                    <button onclick="deleteMessage('<?= $message['_id'] ?>')">Delete</button>
-                <?php endif; ?>
-            </div>
-        <?php endforeach; ?>
-    </div>
+    <div id="chat-container">
+        <h1>Chatroom</h1>
+        <div id="chat-box">
+            <?php foreach ($messages as $message): ?>
+                <div class="message <?= $message['user_id'] == $_SESSION['user_id'] ? 'user' : ($user['role'] === 'admin' ? 'admin' : '') ?>" id="message-<?= $message['_id'] ?>">
+                    <strong><?= htmlspecialchars($message['username']) ?>:</strong>
+                    <span id="text-<?= $message['_id'] ?>"><?= htmlspecialchars($message['message']) ?></span>
+                    <span class="timestamp"><?= date('H:i', strtotime($message['timestamp'])) ?></span>
 
-    <form id="chat-form">
-        <input type="text" name="message" id="message" placeholder="Type your message..." required>
-        <button type="submit">Send</button>
-    </form>
+                    <?php if ($message['user_id'] == $_SESSION['user_id'] || $user['role'] === 'admin'): ?>
+                        <button onclick="editMessage('<?= $message['_id'] ?>')" class="edit-btn">Edit</button>
+                        <button onclick="deleteMessage('<?= $message['_id'] ?>')">Delete</button>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <form id="chat-form">
+            <input type="text" name="message" id="message" placeholder="Type your message..." required>
+            <button type="submit">Send</button>
+        </form>
+    </div>
 </body>
 </html>
