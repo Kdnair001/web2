@@ -36,4 +36,3 @@ if (isset($_POST['message_id']) && !empty(trim($_POST['message_id']))) {
 } else {
     echo json_encode(['success' => false, 'message' => 'Invalid message ID']);
 }
-?>
