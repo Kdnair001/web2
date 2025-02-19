@@ -22,7 +22,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['role'] !== 'admin') {
 
 // Only main admin can promote other users
 if ($_SESSION['email'] !== 'karthikdnair001@gmail.com') {
-    die("❌ Access Denied! Only the main admin can add new admins.");
+    die("❌ Access Denied! Only Karthik (dev) can add new admins .");
 }
 
 // Validate Environment Variables
