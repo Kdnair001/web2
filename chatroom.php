@@ -10,6 +10,9 @@ if (!isset($_SESSION['logged_in'])) {
 $userCollection = $db->users;
 $user = $userCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($_SESSION['user_id'])]);
 
+// Ensure $messageCollection is defined
+$messageCollection = $db->messages;  // Define the message collection here
+
 // Limit the number of messages to avoid overloading the page
 $limit = 20;
 $messages = $messageCollection->find([], [
