@@ -40,4 +40,3 @@ if (isset($_POST['message']) && !empty(trim($_POST['message']))) {
 } else {
     echo json_encode(['success' => false, 'message' => 'Message cannot be empty']);
 }
-?>
