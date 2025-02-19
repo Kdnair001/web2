@@ -3,78 +3,78 @@ session_start();
 require 'vendor/autoload.php';
 
 // Ensure the user is logged in and is an admin
-if (!isset($_SESSION['logged_in']) || $_SESSION['role'] == 'user') {
-    header("Location: index.php");
-    exit();
-}
-
-// MongoDB Connection
-$requiredEnv = ['MONGO_USER', 'MONGO_PASSWORD', 'MONGO_CLUSTER', 'MONGO_DATABASE'];
-foreach ($requiredEnv as $env) {
-    $value = getenv($env) ?: ($_ENV[$env] ?? null);
-    if (!$value) {
-        die("❌ Missing environment variable: $env");
+if (!isset($_SESSION['logged_in']) || $_SESSION['role'] !== 'admin') {
+    // Display an error message instead of redirecting
+    $error = "❌ You do not have permission to access this page.";
+} else {
+    // MongoDB Connection
+    $requiredEnv = ['MONGO_USER', 'MONGO_PASSWORD', 'MONGO_CLUSTER', 'MONGO_DATABASE'];
+    foreach ($requiredEnv as $env) {
+        $value = getenv($env) ?: ($_ENV[$env] ?? null);
+        if (!$value) {
+            die("❌ Missing environment variable: $env");
+        }
     }
-}
 
-$username = getenv("MONGO_USER") ?: $_ENV["MONGO_USER"];
-$password = getenv("MONGO_PASSWORD") ?: $_ENV["MONGO_PASSWORD"];
-$cluster = getenv("MONGO_CLUSTER") ?: $_ENV["MONGO_CLUSTER"];
-$database = getenv("MONGO_DATABASE") ?: $_ENV["MONGO_DATABASE"];
+    $username = getenv("MONGO_USER") ?: $_ENV["MONGO_USER"];
+    $password = getenv("MONGO_PASSWORD") ?: $_ENV["MONGO_PASSWORD"];
+    $cluster = getenv("MONGO_CLUSTER") ?: $_ENV["MONGO_CLUSTER"];
+    $database = getenv("MONGO_DATABASE") ?: $_ENV["MONGO_DATABASE"];
 
-$mongoUri = "mongodb+srv://$username:$password@$cluster/$database?retryWrites=true&w=majority&appName=Cluster0";
-$client = new MongoDB\Client($mongoUri);
-$db = $client->selectDatabase($database);
-$noticesCollection = $db->notices;
+    $mongoUri = "mongodb+srv://$username:$password@$cluster/$database?retryWrites=true&w=majority&appName=Cluster0";
+    $client = new MongoDB\Client($mongoUri);
+    $db = $client->selectDatabase($database);
+    $noticesCollection = $db->notices;
 
-// Handle Create Notice
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['create'])) {
-    $title = trim($_POST['title']);
-    $content = trim($_POST['content']);
-    $author = $_SESSION['email'] ?? "Admin"; // Store the email of the admin who posts the notice
+    // Handle Create Notice
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['create'])) {
+        $title = trim($_POST['title']);
+        $content = trim($_POST['content']);
+        $author = $_SESSION['email'] ?? "Admin"; // Store the email of the admin who posts the notice
 
-    if (!empty($title) && !empty($content)) {
-        $noticesCollection->insertOne([
-            'title' => $title,
-            'content' => $content,
-            'author' => $author,
-            'created_at' => new MongoDB\BSON\UTCDateTime()
-        ]);
+        if (!empty($title) && !empty($content)) {
+            $noticesCollection->insertOne([
+                'title' => $title,
+                'content' => $content,
+                'author' => $author,
+                'created_at' => new MongoDB\BSON\UTCDateTime()
+            ]);
+            header("Location: admin_dashboard.php");
+            exit();
+        } else {
+            $error = "❌ Title and content cannot be empty!";
+        }
+    }
+
+    // Handle Edit Notice
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['edit'])) {
+        $noticeId = new MongoDB\BSON\ObjectId($_POST['notice_id']);
+        $title = trim($_POST['title']);
+        $content = trim($_POST['content']);
+
+        if (!empty($title) && !empty($content)) {
+            $noticesCollection->updateOne(
+                ['_id' => $noticeId],
+                ['$set' => ['title' => $title, 'content' => $content]]
+            );
+            header("Location: admin_dashboard.php");
+            exit();
+        } else {
+            $error = "❌ Title and content cannot be empty!";
+        }
+    }
+
+    // Handle Delete Notice
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['delete'])) {
+        $noticeId = new MongoDB\BSON\ObjectId($_POST['notice_id']);
+        $noticesCollection->deleteOne(['_id' => $noticeId]);
         header("Location: admin_dashboard.php");
         exit();
-    } else {
-        $error = "❌ Title and content cannot be empty!";
     }
+
+    // Fetch All Notices
+    $notices = $noticesCollection->find([], ['sort' => ['created_at' => -1]]);
 }
-
-// Handle Edit Notice
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['edit'])) {
-    $noticeId = new MongoDB\BSON\ObjectId($_POST['notice_id']);
-    $title = trim($_POST['title']);
-    $content = trim($_POST['content']);
-
-    if (!empty($title) && !empty($content)) {
-        $noticesCollection->updateOne(
-            ['_id' => $noticeId],
-            ['$set' => ['title' => $title, 'content' => $content]]
-        );
-        header("Location: admin_dashboard.php");
-        exit();
-    } else {
-        $error = "❌ Title and content cannot be empty!";
-    }
-}
-
-// Handle Delete Notice
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['delete'])) {
-    $noticeId = new MongoDB\BSON\ObjectId($_POST['notice_id']);
-    $noticesCollection->deleteOne(['_id' => $noticeId]);
-    header("Location: admin_dashboard.php");
-    exit();
-}
-
-// Fetch All Notices
-$notices = $noticesCollection->find([], ['sort' => ['created_at' => -1]]);
 ?>
 
 <!DOCTYPE html>
@@ -140,11 +140,20 @@ $notices = $noticesCollection->find([], ['sort' => ['created_at' => -1]]);
             border: 1px solid #ccc;
             border-radius: 5px;
         }
+        .error-message {
+            color: red;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Admin Dashboard</h2>
+
+        <?php if (isset($error)): ?>
+            <p class="error-message"><?= $error ?></p>
+        <?php endif; ?>
 
         <!-- Manage Admins -->
         <a href="admin_panel.php">
