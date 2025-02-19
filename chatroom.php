@@ -36,14 +36,14 @@ $messages = array_reverse($messages);
         <h1>Chatroom</h1>
         <div id="chat-box">
             <?php foreach ($messages as $message): ?>
-                <div class="message <?= $message['user_id'] == $_SESSION['user_id'] ? 'user' : ($user['role'] === 'admin' ? 'admin' : '') ?>" id="message-<?= $message['_id'] ?>">
+                <div class="message <?= $message['user_id'] == $_SESSION['user_id'] ? 'user' : ($user['role'] === 'admin' ? 'admin' : '') ?>" id="message-<?= (string)$message['_id'] ?>">
                     <strong><?= htmlspecialchars($message['username']) ?>:</strong>
-                    <span id="text-<?= $message['_id'] ?>"><?= htmlspecialchars($message['message']) ?></span>
+                    <span id="text-<?= (string)$message['_id'] ?>"><?= htmlspecialchars($message['message']) ?></span>
                     <span class="timestamp"><?= date('H:i', strtotime($message['timestamp'])) ?></span>
 
                     <?php if ($message['user_id'] == $_SESSION['user_id'] || $user['role'] === 'admin'): ?>
-                        <button onclick="editMessage('<?= $message['_id'] ?>')" class="edit-btn">Edit</button>
-                        <button onclick="deleteMessage('<?= $message['_id'] ?>')">Delete</button>
+                        <button onclick="editMessage('<?= (string)$message['_id'] ?>')" class="edit-btn">Edit</button>
+                        <button onclick="deleteMessage('<?= (string)$message['_id'] ?>')">Delete</button>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
