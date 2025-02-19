@@ -3,7 +3,7 @@ session_start();
 require 'vendor/autoload.php';
 
 // Ensure the user is logged in and is an admin
-if (!isset($_SESSION['logged_in']) || $_SESSION['role'] !== 'admin') {
+if (!isset($_SESSION['logged_in']) || $_SESSION['role'] == 'user') {
     header("Location: index.php");
     exit();
 }
