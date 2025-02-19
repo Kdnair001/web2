@@ -6,6 +6,9 @@ require 'vendor/autoload.php';
 if (!isset($_SESSION['logged_in']) || $_SESSION['role'] !== 'admin') {
     // Display an error message instead of redirecting
     $error = "❌ You do not have permission to access this page.";
+    // You could optionally include JavaScript to trigger the popup
+    echo "<script>alert('$error'); window.location.href = 'index.php';</script>";
+    exit();
 } else {
     // MongoDB Connection
     $requiredEnv = ['MONGO_USER', 'MONGO_PASSWORD', 'MONGO_CLUSTER', 'MONGO_DATABASE'];
