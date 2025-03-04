@@ -2,9 +2,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const chatForm = document.getElementById("chat-form");
     const messageInput = document.getElementById("message");
     const chatBox = document.getElementById("chat-box");
+    let firstLoad = true; // Flag to check if it's the first load
 
-    fetchMessages(); // Load messages initially
-    setInterval(fetchMessages, 2000); // Auto-refresh messages every 2 sec
+    fetchMessages(true); // Load messages and scroll only on first load
+    setInterval(fetchMessages, 2000); // Auto-fetch messages every 2 seconds
 
     chatForm.addEventListener("submit", (event) => {
         event.preventDefault();
@@ -17,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-function fetchMessages() {
+function fetchMessages(scrollOnFirstLoad = false) {
     fetch("fetch_messages.php")
         .then(response => response.json())
         .then(data => {
@@ -27,6 +28,8 @@ function fetchMessages() {
             }
 
             const chatBox = document.getElementById("chat-box");
+            const isAtBottom = chatBox.scrollHeight - chatBox.scrollTop === chatBox.clientHeight; // Check if user is at bottom
+
             chatBox.innerHTML = ""; // Clear chatbox to avoid duplicates
 
             data.messages.forEach(msg => {
@@ -43,7 +46,11 @@ function fetchMessages() {
                 chatBox.appendChild(messageDiv);
             });
 
-            scrollToBottom();
+            if (scrollOnFirstLoad) {
+                chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom only on first load
+            } else if (isAtBottom) {
+                chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll if the user is already at the bottom
+            }
         })
         .catch(error => console.error("Error fetching messages:", error));
 }
@@ -63,9 +70,4 @@ function sendMessage(messageText) {
         }
     })
     .catch(error => console.error("Error sending message:", error));
-}
-
-function scrollToBottom() {
-    const chatBox = document.getElementById("chat-box");
-    chatBox.scrollTop = chatBox.scrollHeight;
 }
