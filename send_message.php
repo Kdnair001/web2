@@ -1,4 +1,4 @@
-<?php
+<?php 
 session_start();
 require 'db.php';
 
@@ -28,9 +28,9 @@ $messageCollection = $db->messages;
 $timestamp = new MongoDB\BSON\UTCDateTime(time() * 1000); // Ensure proper timestamp storage
 
 $insertResult = $messageCollection->insertOne([
-    'user_id' => $_SESSION['user_id'],
-    'username' => $user['name'],
-    'message' => $messageText,
+    'user_id' => (string)$_SESSION['user_id'],
+    'username' => htmlspecialchars($user['name']),
+    'message' => htmlspecialchars($messageText),
     'timestamp' => $timestamp
 ]);
 
@@ -40,7 +40,7 @@ echo json_encode([
     'success' => true,
     'message' => htmlspecialchars($messageText),
     'username' => htmlspecialchars($user['name']),
-    'timestamp' => date('H:i:s d-m-Y', time()), // Convert UTC to IST
+    'timestamp' => date('H:i:s d-m-Y'), // Convert UTC to IST for immediate display
     'messageId' => $insertedId
 ]);
-
+?>
