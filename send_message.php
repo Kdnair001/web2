@@ -25,9 +25,8 @@ if (!isset($_POST['message']) || empty(trim($_POST['message']))) {
 $messageText = trim($_POST['message']);
 
 $messageCollection = $db->messages;
-$timestamp = new MongoDB\BSON\UTCDateTime();
+$timestamp = new MongoDB\BSON\UTCDateTime(time() * 1000); // Ensure proper timestamp storage
 
-// Insert the new message with timestamp
 $insertResult = $messageCollection->insertOne([
     'user_id' => $_SESSION['user_id'],
     'username' => $user['name'],
@@ -35,15 +34,13 @@ $insertResult = $messageCollection->insertOne([
     'timestamp' => $timestamp
 ]);
 
-// Fetch the inserted message's ID to return to the client
 $insertedId = (string)$insertResult->getInsertedId();
 
-// Return the message data as JSON for the client to display
 echo json_encode([
     'success' => true,
-    'message' => htmlspecialchars($messageText), // Prevent XSS
-    'username' => htmlspecialchars($user['name']), // Prevent XSS
-    'timestamp' => $timestamp->toDateTime()->format('Y-m-d H:i:s'),
+    'message' => htmlspecialchars($messageText),
+    'username' => htmlspecialchars($user['name']),
+    'timestamp' => date('H:i:s d-m-Y', time()), // Convert UTC to IST
     'messageId' => $insertedId
 ]);
-?>
+
