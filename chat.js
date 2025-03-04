@@ -28,34 +28,33 @@ function fetchMessages(scrollOnFirstLoad = false) {
             }
 
             const chatBox = document.getElementById("chat-box");
-            const isAtBottom = chatBox.scrollHeight - chatBox.scrollTop <= chatBox.clientHeight + 10; // Detect if user is at bottom
+            const existingMessageIds = new Set([...chatBox.children].map(div => div.id));
 
-            chatBox.innerHTML = ""; // Clear chatbox
+            let shouldScroll = chatBox.scrollHeight - chatBox.scrollTop === chatBox.clientHeight;
 
             data.messages.forEach(msg => {
-                const messageDiv = document.createElement("div");
-                messageDiv.classList.add("message");
-                messageDiv.id = `message-${msg.messageId}`;
+                if (!existingMessageIds.has(`message-${msg.messageId}`)) { 
+                    const messageDiv = document.createElement("div");
+                    messageDiv.classList.add("message");
+                    messageDiv.id = `message-${msg.messageId}`;
 
-                messageDiv.innerHTML = `
-                    <strong>${msg.username}:</strong> 
-                    <span id="text-${msg.messageId}">${msg.message}</span>
-                    <span class="timestamp">${msg.timestamp}</span>
-                    ${(msg.user_id === userId || isAdmin) ? `
-                        <button class="edit-btn" onclick="editMessage('${msg.messageId}', '${msg.message}')">✏️ Edit</button>
-                        <button class="delete-btn" onclick="deleteMessage('${msg.messageId}')">🗑️ Delete</button>
-                    ` : ""}
-                `;
+                    messageDiv.innerHTML = `
+                        <strong>${msg.username}:</strong> 
+                        <span id="text-${msg.messageId}">${msg.message}</span>
+                        <span class="timestamp">(${msg.timestamp})</span>
+                    `;
 
-                chatBox.appendChild(messageDiv);
+                    chatBox.appendChild(messageDiv);
+                }
             });
 
-            if (scrollOnFirstLoad || isAtBottom) {
-                chatBox.scrollTop = chatBox.scrollHeight; // Scroll down only if at bottom or first load
+            if (scrollOnFirstLoad || shouldScroll) {
+                chatBox.scrollTop = chatBox.scrollHeight; // Keep chat scrolled to bottom
             }
         })
         .catch(error => console.error("Error fetching messages:", error));
 }
+
 
 function sendMessage(messageText) {
     fetch("send_message.php", {
