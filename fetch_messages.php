@@ -8,21 +8,23 @@ $messageCollection = $db->messages;
 
 // Fetch latest 50 messages sorted in ascending order (oldest to newest)
 $messages = $messageCollection->find([], [
-    'limit' => 50,
-    'sort' => ['timestamp' => 1] // Sorting in ascending order
+    'sort' => ['_id' => 1], // Use `_id` to maintain order (oldest to newest)
+    'limit' => 50
 ]);
 
 $response = ['success' => true, 'messages' => []];
 
 foreach ($messages as $message) {
+    $timestamp = isset($message['timestamp']) && $message['timestamp'] instanceof MongoDB\BSON\UTCDateTime
+        ? $message['timestamp']->toDateTime()->format('H:i:s d-m-Y')
+        : 'Unknown Time';
+
     $response['messages'][] = [
-        'messageId' => (string)$message['_id'], 
+        'messageId' => (string)$message['_id'],
         'username' => htmlspecialchars($message['username']),
         'message' => htmlspecialchars($message['message']),
-        'timestamp' => isset($message['timestamp']) && $message['timestamp'] instanceof MongoDB\BSON\UTCDateTime 
-            ? date('H:i:s d-m-Y', $message['timestamp']->toDateTime()->getTimestamp()) 
-            : 'Unknown Time',
-        'user_id' => $message['user_id']
+        'timestamp' => $timestamp,
+        'user_id' => (string)$message['user_id']
     ];
 }
 
