@@ -21,41 +21,40 @@ $user = $userCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($_SESSION['
     <title>Chatroom</title>
     <link rel="stylesheet" href="chat.css">
     <script src="chat.js" defer></script>
-    <script>
-        function fetchMessages() {
-            fetch("fetch_messages.php")
-                .then(response => response.json())
-                .then(data => {
-                    let chatBox = document.getElementById("chat-box");
-                    chatBox.innerHTML = ""; // Clear chat box
+   <script>
+    function fetchMessages() {
+        fetch("fetch_messages.php")
+            .then(response => response.json())
+            .then(data => {
+                let chatBox = document.getElementById("chat-box");
+                chatBox.innerHTML = ""; // Clear chat box
+                
+                data.messages.forEach(msg => {
+                    let messageDiv = document.createElement("div");
+                    messageDiv.classList.add("message");
+
+                    if (msg.user_id === "<?= $_SESSION['user_id'] ?>") {
+                        messageDiv.classList.add("user");
+                    }
+
+                    messageDiv.innerHTML = `
+                        <strong>${msg.username}:</strong> 
+                        <span>${msg.message}</span>
+                        <span class="timestamp">${msg.timestamp}</span>
+                    `;
                     
-                    data.forEach(msg => {
-                        let messageDiv = document.createElement("div");
-                        messageDiv.classList.add("message");
+                    chatBox.appendChild(messageDiv);
+                });
 
-                        if (msg.user_id === "<?= $_SESSION['user_id'] ?>") {
-                            messageDiv.classList.add("user");
-                        }
+                chatBox.scrollTop = chatBox.scrollHeight;
+            })
+            .catch(error => console.error("Error fetching messages:", error));
+    }
 
-                        messageDiv.innerHTML = `
-                            <strong>${msg.username}:</strong> 
-                            <span>${msg.message}</span>
-                            <span class="timestamp">${msg.timestamp}</span>
-                        `;
-                        
-                        chatBox.appendChild(messageDiv);
-                    });
+    setInterval(fetchMessages, 2000);
+    window.onload = fetchMessages;
+</script>
 
-                    chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to bottom
-                })
-                .catch(error => console.error("Error fetching messages:", error));
-        }
-
-        // Fetch messages every 2 seconds without refreshing the page
-        setInterval(fetchMessages, 2000);
-
-        window.onload = fetchMessages;
-    </script>
 </head>
 <body>
     <div id="chat-container">
