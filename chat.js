@@ -1,110 +1,96 @@
 document.addEventListener("DOMContentLoaded", () => {
     const chatForm = document.getElementById("chat-form");
-    const messageInput = document.getElementById("message");
-    const chatBox = document.getElementById("chat-box");
-
-    fetchMessages(true); // Load messages on first load
-    setInterval(() => fetchMessages(false), 2000); // Fetch every 2s without clearing
 
     chatForm.addEventListener("submit", (event) => {
         event.preventDefault();
+        const messageInput = document.getElementById("message");
         const messageText = messageInput.value.trim();
         
         if (messageText !== "") {
-            sendMessage(messageText);
-            messageInput.value = "";
+            sendMessage(messageText); // Call the sendMessage function to send the message
+            messageInput.value = ""; // Clear the input field
         }
     });
 });
 
-function fetchMessages(scrollOnFirstLoad = false) {
-    fetch("fetch_messages.php")
-        .then(response => response.json())
-        .then(data => {
-            if (!data.success) {
-                console.error("Error fetching messages:", data.message);
-                return;
-            }
-
-            const chatBox = document.getElementById("chat-box");
-            chatBox.innerHTML = ""; // Clear chatbox only once at the start
-
-            data.messages.forEach(msg => {
-                if (!document.getElementById(`message-${msg.messageId}`)) { // Prevent duplicate messages
-                    const messageDiv = document.createElement("div");
-                    messageDiv.classList.add("message");
-                    messageDiv.id = `message-${msg.messageId}`;
-
-                    messageDiv.innerHTML = `
-                        <strong>${msg.username}:</strong> 
-                        <span id="text-${msg.messageId}">${msg.message}</span>
-                        <span class="timestamp">(${msg.timestamp})</span>
-                    `;
-
-                    chatBox.appendChild(messageDiv);
-                }
-            });
-
-            if (scrollOnFirstLoad) {
-                chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom only on first load
-            }
-        })
-        .catch(error => console.error("Error fetching messages:", error));
-}
-
 function sendMessage(messageText) {
     fetch("send_message.php", {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
         body: `message=${encodeURIComponent(messageText)}`
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            fetchMessages(true); // Fetch messages and scroll after sending
+            // Append the new message to the chatbox
+            const chatBox = document.getElementById("chat-box");
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message");
+            messageDiv.id = `message-${data.messageId}`; // Assign unique message ID to div
+
+            messageDiv.innerHTML = `
+                <strong>${data.username}:</strong> 
+                <span id="text-${data.messageId}">${data.message}</span>
+                <button onclick="editMessage('${data.messageId}')" class="edit-btn">Edit</button>
+                <button onclick="deleteMessage('${data.messageId}')">Delete</button>
+            `;
+
+            chatBox.prepend(messageDiv); // Prepend to add new messages at the top
         } else {
             alert("Failed to send message.");
         }
     })
-    .catch(error => console.error("Error sending message:", error));
-}
-
-function editMessage(messageId, oldMessage) {
-    const newMessage = prompt("Edit your message:", oldMessage);
-    
-    if (newMessage !== null && newMessage.trim() !== "") {
-        fetch("edit_message.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: messageId, message: newMessage })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById(`text-${messageId}`).innerText = newMessage; // Update text instantly
-            } else {
-                alert("Failed to edit message.");
-            }
-        })
-        .catch(error => console.error("Error editing message:", error));
-    }
+    .catch(error => {
+        console.error("Error sending message:", error);
+    });
 }
 
 function deleteMessage(messageId) {
     if (confirm("Are you sure you want to delete this message?")) {
         fetch("delete_message.php", {
             method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: `message_id=${messageId}`
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `message_id=${encodeURIComponent(messageId)}`
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                document.getElementById(`message-${messageId}`).remove(); // Remove message instantly
+                document.getElementById(`message-${messageId}`).remove();
             } else {
                 alert("Failed to delete message.");
             }
         })
-        .catch(error => console.error("Error deleting message:", error));
+        .catch(error => {
+            console.error("Error deleting message:", error);
+        });
+    }
+}
+
+function editMessage(messageId) {
+    const messageSpan = document.getElementById(`text-${messageId}`);
+    const currentText = messageSpan.innerText;
+    const newText = prompt("Edit your message:", currentText);
+
+    if (newText !== null && newText.trim() !== "") {
+        fetch("edit_message.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: messageId, message: newText })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                messageSpan.innerText = newText; // Update the message text
+            } else {
+                alert("Failed to edit message.");
+            }
+        })
+        .catch(error => {
+            console.error("Error editing message:", error);
+        });
     }
 }
