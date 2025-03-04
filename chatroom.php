@@ -62,9 +62,12 @@ $messages = array_reverse($messages);
                 <div class="message <?= $message['user_id'] == $_SESSION['user_id'] ? 'user' : ($user['role'] === 'admin' ? 'admin' : '') ?>" id="message-<?= (string)$message['_id'] ?>">
                     <strong><?= htmlspecialchars($message['username']) ?>:</strong>
                     <span id="text-<?= (string)$message['_id'] ?>"><?= htmlspecialchars($message['message']) ?></span>
-                    <span class="timestamp">
-                        <?= date('H:i:s d-m-Y', strtotime($message['timestamp'])) ?>
-                    </span>
+                   <span class="timestamp">
+    <?= $message['timestamp'] instanceof MongoDB\BSON\UTCDateTime 
+        ? date('H:i:s d-m-Y', $message['timestamp']->toDateTime()->getTimestamp()) 
+        : 'Invalid Time' ?>
+                   </span>
+
                     
                     <?php if ($message['user_id'] == $_SESSION['user_id'] || $user['role'] === 'admin'): ?>
                         <button onclick="editMessage('<?= (string)$message['_id'] ?>')" class="edit-btn">Edit</button>
