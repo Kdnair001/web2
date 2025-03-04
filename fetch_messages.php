@@ -11,18 +11,18 @@ $messages = $messageCollection->find([], [
 ]);
 
 $messages = iterator_to_array($messages);
-$messages = array_reverse($messages); // Reverse to show latest at the bottom
+$messages = array_reverse($messages); // Reverse so latest messages appear at the bottom
 
 $response = ['success' => true, 'messages' => []];
 
 foreach ($messages as $message) {
     $response['messages'][] = [
-        'messageId' => (string)$message['_id'], // Changed 'id' to 'messageId' for consistency
+        'messageId' => (string)$message['_id'], 
         'username' => htmlspecialchars($message['username']),
         'message' => htmlspecialchars($message['message']),
-        'timestamp' => $message['timestamp'] instanceof MongoDB\BSON\UTCDateTime
-            ? date('H:i:s d-m-Y', $message['timestamp']->toDateTime()->getTimestamp())
-            : 'Invalid Time',
+        'timestamp' => isset($message['timestamp']) && $message['timestamp'] instanceof MongoDB\BSON\UTCDateTime 
+            ? date('H:i:s d-m-Y', $message['timestamp']->toDateTime()->getTimestamp()) 
+            : 'Unknown Time',
         'user_id' => $message['user_id']
     ];
 }
