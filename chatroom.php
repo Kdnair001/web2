@@ -37,6 +37,7 @@ $messages = array_reverse($messages);
 <body>
     <div id="chat-container">
         <h1>Chatroom</h1>
+        <a href="index.php" target="_parent">🏠 Back to Home</a>
         <div id="chat-box">
             <?php foreach ($messages as $message): ?>
                 <div class="message <?= $message['user_id'] == $_SESSION['user_id'] ? 'user' : ($user['role'] === 'admin' ? 'admin' : '') ?>" id="message-<?= (string)$message['_id'] ?>">
