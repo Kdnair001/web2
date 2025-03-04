@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const chatForm = document.getElementById("chat-form");
     const messageInput = document.getElementById("message");
+    const chatBox = document.getElementById("chat-box");
 
     fetchMessages(); // Load messages initially
     setInterval(fetchMessages, 2000); // Auto-refresh messages every 2 sec
@@ -19,23 +20,24 @@ document.addEventListener("DOMContentLoaded", () => {
 function fetchMessages() {
     fetch("fetch_messages.php")
         .then(response => response.json())
-        .then(messages => {
+        .then(data => {
+            if (!data.success) {
+                console.error("Error fetching messages:", data.message);
+                return;
+            }
+
             const chatBox = document.getElementById("chat-box");
             chatBox.innerHTML = ""; // Clear chatbox to avoid duplicates
 
-            messages.forEach(data => {
+            data.messages.forEach(msg => {
                 const messageDiv = document.createElement("div");
                 messageDiv.classList.add("message");
-                messageDiv.id = `message-${data.id}`;
+                messageDiv.id = `message-${msg.messageId}`;
 
                 messageDiv.innerHTML = `
-                    <strong>${data.username}:</strong> 
-                    <span id="text-${data.id}">${data.message}</span>
-                    <span class="timestamp">${data.timestamp}</span>
-                    ${data.user_id === getSessionUserId() ? `
-                        <button onclick="editMessage('${data.id}')" class="edit-btn">Edit</button>
-                        <button onclick="deleteMessage('${data.id}')">Delete</button>
-                    ` : ""}
+                    <strong>${msg.username}:</strong> 
+                    <span id="text-${msg.messageId}">${msg.message}</span>
+                    <span class="timestamp">${msg.timestamp}</span>
                 `;
 
                 chatBox.appendChild(messageDiv);
@@ -61,10 +63,6 @@ function sendMessage(messageText) {
         }
     })
     .catch(error => console.error("Error sending message:", error));
-}
-
-function getSessionUserId() {
-    return "<?php echo $_SESSION['user_id']; ?>"; // Inject session user ID into JS
 }
 
 function scrollToBottom() {
