@@ -7,10 +7,22 @@ if (!isset($_SESSION['logged_in'])) {
     exit();
 }
 
-date_default_timezone_set('Asia/Kolkata'); // Set timezone to IST
-
 $userCollection = $db->users;
 $user = $userCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($_SESSION['user_id'])]);
+
+// Ensure $messageCollection is defined
+$messageCollection = $db->messages;  // Define the message collection here
+
+// Limit the number of messages to avoid overloading the page
+$limit = 20;
+$messages = $messageCollection->find([], [
+    'limit' => $limit,
+    'sort' => ['timestamp' => -1]
+]);
+
+// Reverse the order so the latest messages appear at the bottom
+$messages = iterator_to_array($messages);
+$messages = array_reverse($messages);
 ?>
 
 <!DOCTYPE html>
@@ -21,57 +33,24 @@ $user = $userCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($_SESSION['
     <title>Chatroom</title>
     <link rel="stylesheet" href="chat.css">
     <script src="chat.js" defer></script>
-   <script>
-    function fetchMessages(scrollOnFirstLoad = false) {
-        fetch("fetch_messages.php")
-            .then(response => response.json())
-            .then(data => {
-                if (!data.success) {
-                    console.error("Error fetching messages:", data.message);
-                    return;
-                }
-
-                const chatBox = document.getElementById("chat-box");
-                const userId = "<?= $_SESSION['user_id'] ?>"; // Get logged-in user ID
-                const userRole = "<?= $_SESSION['role'] ?? '' ?>"; // Get user role (if available)
-                const isAdmin = userRole === "admin"; // Check if user is admin
-
-                chatBox.innerHTML = ""; // Clear chatbox
-
-                data.messages.forEach(msg => {
-                    const messageDiv = document.createElement("div");
-                    messageDiv.classList.add("message");
-                    messageDiv.id = `message-${msg.messageId}`;
-
-                    messageDiv.innerHTML = `
-                        <strong>${msg.username}:</strong> 
-                        <span id="text-${msg.messageId}">${msg.message}</span>
-                        <span class="timestamp">${msg.timestamp}</span>
-                        ${(msg.user_id === userId || isAdmin) ? `
-                            <button class="edit-btn" onclick="editMessage('${msg.messageId}', '${msg.message}')">✏️ Edit</button>
-                            <button class="delete-btn" onclick="deleteMessage('${msg.messageId}')">🗑️ Delete</button>
-                        ` : ""}
-                    `;
-
-                    chatBox.appendChild(messageDiv);
-                });
-
-                if (scrollOnFirstLoad) {
-                    chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom only on first load
-                }
-            })
-            .catch(error => console.error("Error fetching messages:", error));
-    }
-</script>
-
-
 </head>
 <body>
     <div id="chat-container">
         <h1>Chatroom</h1>
-        <a href="index.php" target="_parent">🏠 Back to Home</a>
-        
-        <div id="chat-box"></div>
+        <div id="chat-box">
+            <?php foreach ($messages as $message): ?>
+                <div class="message <?= $message['user_id'] == $_SESSION['user_id'] ? 'user' : ($user['role'] === 'admin' ? 'admin' : '') ?>" id="message-<?= (string)$message['_id'] ?>">
+                    <strong><?= htmlspecialchars($message['username']) ?>:</strong>
+                    <span id="text-<?= (string)$message['_id'] ?>"><?= htmlspecialchars($message['message']) ?></span>
+                    <span class="timestamp"><?= date('H:i', strtotime($message['timestamp'])) ?></span>
+
+                    <?php if ($message['user_id'] == $_SESSION['user_id'] || $user['role'] === 'admin'): ?>
+                        <button onclick="editMessage('<?= (string)$message['_id'] ?>')" class="edit-btn">Edit</button>
+                        <button onclick="deleteMessage('<?= (string)$message['_id'] ?>')">Delete</button>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
 
         <form id="chat-form">
             <input type="text" name="message" id="message" placeholder="Type your message..." required>
