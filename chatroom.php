@@ -7,24 +7,10 @@ if (!isset($_SESSION['logged_in'])) {
     exit();
 }
 
-date_default_timezone_set('Asia/Kolkata'); // Set timezone to Indian Standard Time (IST)
+date_default_timezone_set('Asia/Kolkata'); // Set timezone to IST
 
 $userCollection = $db->users;
 $user = $userCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($_SESSION['user_id'])]);
-
-// Ensure $messageCollection is defined
-$messageCollection = $db->messages;
-
-// Limit the number of messages to avoid overloading the page
-$limit = 20;
-$messages = $messageCollection->find([], [
-    'limit' => $limit,
-    'sort' => ['timestamp' => -1]
-]);
-
-// Reverse the order so the latest messages appear at the bottom
-$messages = iterator_to_array($messages);
-$messages = array_reverse($messages);
 ?>
 
 <!DOCTYPE html>
@@ -36,46 +22,47 @@ $messages = array_reverse($messages);
     <link rel="stylesheet" href="chat.css">
     <script src="chat.js" defer></script>
     <script>
-        function autoRefresh() {
-            setTimeout(function() {
-                location.reload();
-            }, 5000); // Refresh every 5 seconds
-        }
-        window.onload = function() {
-            autoRefresh();
-            scrollToBottom(); // Scroll to the last message
-        };
+        function fetchMessages() {
+            fetch("fetch_messages.php")
+                .then(response => response.json())
+                .then(data => {
+                    let chatBox = document.getElementById("chat-box");
+                    chatBox.innerHTML = ""; // Clear chat box
+                    
+                    data.forEach(msg => {
+                        let messageDiv = document.createElement("div");
+                        messageDiv.classList.add("message");
 
-        function scrollToBottom() {
-            var chatBox = document.getElementById("chat-box");
-            chatBox.scrollTop = chatBox.scrollHeight;
+                        if (msg.user_id === "<?= $_SESSION['user_id'] ?>") {
+                            messageDiv.classList.add("user");
+                        }
+
+                        messageDiv.innerHTML = `
+                            <strong>${msg.username}:</strong> 
+                            <span>${msg.message}</span>
+                            <span class="timestamp">${msg.timestamp}</span>
+                        `;
+                        
+                        chatBox.appendChild(messageDiv);
+                    });
+
+                    chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to bottom
+                })
+                .catch(error => console.error("Error fetching messages:", error));
         }
+
+        // Fetch messages every 2 seconds without refreshing the page
+        setInterval(fetchMessages, 2000);
+
+        window.onload = fetchMessages;
     </script>
 </head>
 <body>
     <div id="chat-container">
         <h1>Chatroom</h1>
-       <a href="index.php" target="_parent">🏠 Back to Home</a>
+        <a href="index.php" target="_parent">🏠 Back to Home</a>
         
-        <div id="chat-box">
-            <?php foreach ($messages as $message): ?>
-                <div class="message <?= $message['user_id'] == $_SESSION['user_id'] ? 'user' : ($user['role'] === 'admin' ? 'admin' : '') ?>" id="message-<?= (string)$message['_id'] ?>">
-                    <strong><?= htmlspecialchars($message['username']) ?>:</strong>
-                    <span id="text-<?= (string)$message['_id'] ?>"><?= htmlspecialchars($message['message']) ?></span>
-                   <span class="timestamp">
-    <?= $message['timestamp'] instanceof MongoDB\BSON\UTCDateTime 
-        ? date('H:i:s d-m-Y', $message['timestamp']->toDateTime()->getTimestamp()) 
-        : 'Invalid Time' ?>
-                   </span>
-
-                    
-                    <?php if ($message['user_id'] == $_SESSION['user_id'] || $user['role'] === 'admin'): ?>
-                        <button onclick="editMessage('<?= (string)$message['_id'] ?>')" class="edit-btn">Edit</button>
-                        <button onclick="deleteMessage('<?= (string)$message['_id'] ?>')">Delete</button>
-                    <?php endif; ?>
-                </div>
-            <?php endforeach; ?>
-        </div>
+        <div id="chat-box"></div>
 
         <form id="chat-form">
             <input type="text" name="message" id="message" placeholder="Type your message..." required>
