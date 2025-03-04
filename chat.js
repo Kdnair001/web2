@@ -3,8 +3,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const messageInput = document.getElementById("message");
     const chatBox = document.getElementById("chat-box");
 
-    fetchMessages(true); // Load messages and scroll on first load
-    setInterval(() => fetchMessages(false), 2000); // Fetch every 2s without auto-scrolling
+    fetchMessages(true); // Load messages on first load
+    setInterval(() => fetchMessages(false), 2000); // Fetch every 2s without clearing
 
     chatForm.addEventListener("submit", (event) => {
         event.preventDefault();
@@ -27,29 +27,30 @@ function fetchMessages(scrollOnFirstLoad = false) {
             }
 
             const chatBox = document.getElementById("chat-box");
-            chatBox.innerHTML = ""; // Clear chatbox before appending new messages
+            chatBox.innerHTML = ""; // Clear chatbox only once at the start
 
             data.messages.forEach(msg => {
-                const messageDiv = document.createElement("div");
-                messageDiv.classList.add("message");
-                messageDiv.id = `message-${msg.messageId}`;
+                if (!document.getElementById(`message-${msg.messageId}`)) { // Prevent duplicate messages
+                    const messageDiv = document.createElement("div");
+                    messageDiv.classList.add("message");
+                    messageDiv.id = `message-${msg.messageId}`;
 
-                messageDiv.innerHTML = `
-                    <strong>${msg.username}:</strong> 
-                    <span id="text-${msg.messageId}">${msg.message}</span>
-                    <span class="timestamp">(${msg.timestamp})</span>
-                `;
+                    messageDiv.innerHTML = `
+                        <strong>${msg.username}:</strong> 
+                        <span id="text-${msg.messageId}">${msg.message}</span>
+                        <span class="timestamp">(${msg.timestamp})</span>
+                    `;
 
-                chatBox.appendChild(messageDiv);
+                    chatBox.appendChild(messageDiv);
+                }
             });
 
             if (scrollOnFirstLoad) {
-                chatBox.scrollTop = chatBox.scrollHeight; // Keep chat scrolled to bottom
+                chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom only on first load
             }
         })
         .catch(error => console.error("Error fetching messages:", error));
 }
-
 
 function sendMessage(messageText) {
     fetch("send_message.php", {
