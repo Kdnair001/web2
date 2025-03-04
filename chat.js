@@ -2,7 +2,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const chatForm = document.getElementById("chat-form");
     const messageInput = document.getElementById("message");
     const chatBox = document.getElementById("chat-box");
-    let firstLoad = true; // Scroll to bottom only on first load
 
     fetchMessages(true); // Load messages and scroll on first load
     setInterval(() => fetchMessages(false), 2000); // Fetch every 2s without auto-scrolling
@@ -28,27 +27,23 @@ function fetchMessages(scrollOnFirstLoad = false) {
             }
 
             const chatBox = document.getElementById("chat-box");
-            const existingMessageIds = new Set([...chatBox.children].map(div => div.id));
-
-            let shouldScroll = chatBox.scrollHeight - chatBox.scrollTop === chatBox.clientHeight;
+            chatBox.innerHTML = ""; // Clear chatbox before appending new messages
 
             data.messages.forEach(msg => {
-                if (!existingMessageIds.has(`message-${msg.messageId}`)) { 
-                    const messageDiv = document.createElement("div");
-                    messageDiv.classList.add("message");
-                    messageDiv.id = `message-${msg.messageId}`;
+                const messageDiv = document.createElement("div");
+                messageDiv.classList.add("message");
+                messageDiv.id = `message-${msg.messageId}`;
 
-                    messageDiv.innerHTML = `
-                        <strong>${msg.username}:</strong> 
-                        <span id="text-${msg.messageId}">${msg.message}</span>
-                        <span class="timestamp">(${msg.timestamp})</span>
-                    `;
+                messageDiv.innerHTML = `
+                    <strong>${msg.username}:</strong> 
+                    <span id="text-${msg.messageId}">${msg.message}</span>
+                    <span class="timestamp">(${msg.timestamp})</span>
+                `;
 
-                    chatBox.appendChild(messageDiv);
-                }
+                chatBox.appendChild(messageDiv);
             });
 
-            if (scrollOnFirstLoad || shouldScroll) {
+            if (scrollOnFirstLoad) {
                 chatBox.scrollTop = chatBox.scrollHeight; // Keep chat scrolled to bottom
             }
         })
