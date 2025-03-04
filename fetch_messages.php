@@ -7,17 +7,17 @@ date_default_timezone_set('Asia/Kolkata'); // Set timezone to IST
 $messageCollection = $db->messages;
 $messages = $messageCollection->find([], [
     'limit' => 20,
-    'sort' => ['timestamp' => -1]
+    'sort' => ['timestamp' => -1] // Fetch latest messages first
 ]);
 
 $messages = iterator_to_array($messages);
-$messages = array_reverse($messages);
+$messages = array_reverse($messages); // Reverse to show latest at the bottom
 
-$response = [];
+$response = ['success' => true, 'messages' => []];
 
 foreach ($messages as $message) {
-    $response[] = [
-        'id' => (string)$message['_id'],
+    $response['messages'][] = [
+        'messageId' => (string)$message['_id'], // Changed 'id' to 'messageId' for consistency
         'username' => htmlspecialchars($message['username']),
         'message' => htmlspecialchars($message['message']),
         'timestamp' => $message['timestamp'] instanceof MongoDB\BSON\UTCDateTime
