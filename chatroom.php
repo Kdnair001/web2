@@ -22,38 +22,48 @@ $user = $userCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($_SESSION['
     <link rel="stylesheet" href="chat.css">
     <script src="chat.js" defer></script>
    <script>
-    function fetchMessages() {
+    function fetchMessages(scrollOnFirstLoad = false) {
         fetch("fetch_messages.php")
             .then(response => response.json())
             .then(data => {
-                let chatBox = document.getElementById("chat-box");
-                chatBox.innerHTML = ""; // Clear chat box
-                
-                data.messages.forEach(msg => {
-                    let messageDiv = document.createElement("div");
-                    messageDiv.classList.add("message");
+                if (!data.success) {
+                    console.error("Error fetching messages:", data.message);
+                    return;
+                }
 
-                    if (msg.user_id === "<?= $_SESSION['user_id'] ?>") {
-                        messageDiv.classList.add("user");
-                    }
+                const chatBox = document.getElementById("chat-box");
+                const userId = "<?= $_SESSION['user_id'] ?>"; // Get logged-in user ID
+                const userRole = "<?= $_SESSION['role'] ?? '' ?>"; // Get user role (if available)
+                const isAdmin = userRole === "admin"; // Check if user is admin
+
+                chatBox.innerHTML = ""; // Clear chatbox
+
+                data.messages.forEach(msg => {
+                    const messageDiv = document.createElement("div");
+                    messageDiv.classList.add("message");
+                    messageDiv.id = `message-${msg.messageId}`;
 
                     messageDiv.innerHTML = `
                         <strong>${msg.username}:</strong> 
-                        <span>${msg.message}</span>
+                        <span id="text-${msg.messageId}">${msg.message}</span>
                         <span class="timestamp">${msg.timestamp}</span>
+                        ${(msg.user_id === userId || isAdmin) ? `
+                            <button class="edit-btn" onclick="editMessage('${msg.messageId}', '${msg.message}')">✏️ Edit</button>
+                            <button class="delete-btn" onclick="deleteMessage('${msg.messageId}')">🗑️ Delete</button>
+                        ` : ""}
                     `;
-                    
+
                     chatBox.appendChild(messageDiv);
                 });
 
-                chatBox.scrollTop = chatBox.scrollHeight;
+                if (scrollOnFirstLoad) {
+                    chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom only on first load
+                }
             })
             .catch(error => console.error("Error fetching messages:", error));
     }
-
-    setInterval(fetchMessages, 2000);
-    window.onload = fetchMessages;
 </script>
+
 
 </head>
 <body>
