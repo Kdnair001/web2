@@ -2,10 +2,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const chatForm = document.getElementById("chat-form");
     const messageInput = document.getElementById("message");
     const chatBox = document.getElementById("chat-box");
-    let firstLoad = true; // Flag to check if it's the first load
+    let firstLoad = true; // Scroll to bottom only on first load
 
-    fetchMessages(true); // Load messages and scroll only on first load
-    setInterval(fetchMessages, 2000); // Auto-fetch messages every 2 seconds
+    fetchMessages(true); // Load messages and scroll on first load
+    setInterval(() => fetchMessages(false), 2000); // Fetch every 2s without auto-scrolling
 
     chatForm.addEventListener("submit", (event) => {
         event.preventDefault();
@@ -28,9 +28,9 @@ function fetchMessages(scrollOnFirstLoad = false) {
             }
 
             const chatBox = document.getElementById("chat-box");
-            const isAtBottom = chatBox.scrollHeight - chatBox.scrollTop === chatBox.clientHeight; // Check if user is at bottom
+            const isAtBottom = chatBox.scrollHeight - chatBox.scrollTop <= chatBox.clientHeight + 10; // Detect if user is at bottom
 
-            chatBox.innerHTML = ""; // Clear chatbox to avoid duplicates
+            chatBox.innerHTML = ""; // Clear chatbox
 
             data.messages.forEach(msg => {
                 const messageDiv = document.createElement("div");
@@ -41,15 +41,17 @@ function fetchMessages(scrollOnFirstLoad = false) {
                     <strong>${msg.username}:</strong> 
                     <span id="text-${msg.messageId}">${msg.message}</span>
                     <span class="timestamp">${msg.timestamp}</span>
+                    ${(msg.user_id === userId || isAdmin) ? `
+                        <button class="edit-btn" onclick="editMessage('${msg.messageId}', '${msg.message}')">✏️ Edit</button>
+                        <button class="delete-btn" onclick="deleteMessage('${msg.messageId}')">🗑️ Delete</button>
+                    ` : ""}
                 `;
 
                 chatBox.appendChild(messageDiv);
             });
 
-            if (scrollOnFirstLoad) {
-                chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom only on first load
-            } else if (isAtBottom) {
-                chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll if the user is already at the bottom
+            if (scrollOnFirstLoad || isAtBottom) {
+                chatBox.scrollTop = chatBox.scrollHeight; // Scroll down only if at bottom or first load
             }
         })
         .catch(error => console.error("Error fetching messages:", error));
@@ -64,7 +66,7 @@ function sendMessage(messageText) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            fetchMessages(); // Fetch messages immediately after sending
+            fetchMessages(true); // Fetch messages and scroll after sending
         } else {
             alert("Failed to send message.");
         }
