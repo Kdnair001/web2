@@ -71,3 +71,43 @@ function sendMessage(messageText) {
     })
     .catch(error => console.error("Error sending message:", error));
 }
+
+function editMessage(messageId, oldMessage) {
+    const newMessage = prompt("Edit your message:", oldMessage);
+    
+    if (newMessage !== null && newMessage.trim() !== "") {
+        fetch("edit_message.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: messageId, message: newMessage })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById(`text-${messageId}`).innerText = newMessage; // Update text instantly
+            } else {
+                alert("Failed to edit message.");
+            }
+        })
+        .catch(error => console.error("Error editing message:", error));
+    }
+}
+
+function deleteMessage(messageId) {
+    if (confirm("Are you sure you want to delete this message?")) {
+        fetch("delete_message.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: `message_id=${messageId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById(`message-${messageId}`).remove(); // Remove message instantly
+            } else {
+                alert("Failed to delete message.");
+            }
+        })
+        .catch(error => console.error("Error deleting message:", error));
+    }
+}
