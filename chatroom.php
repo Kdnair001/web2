@@ -55,7 +55,7 @@ $messages = array_reverse($messages);
 <body>
     <div id="chat-container">
         <h1>Chatroom</h1>
-        <a href="index.php" class="back-home">Go Back to Home</a>
+       <a href="index.php" target="_parent">🏠 Back to Home</a>
         
         <div id="chat-box">
             <?php foreach ($messages as $message): ?>
