@@ -7,6 +7,8 @@ if (!isset($_SESSION['logged_in'])) {
     exit();
 }
 
+date_default_timezone_set('Asia/Kolkata'); // Set timezone to Indian Standard Time (IST)
+
 $userCollection = $db->users;
 $user = $userCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($_SESSION['user_id'])]);
 
@@ -39,7 +41,15 @@ $messages = array_reverse($messages);
                 location.reload();
             }, 5000); // Refresh every 5 seconds
         }
-        window.onload = autoRefresh;
+        window.onload = function() {
+            autoRefresh();
+            scrollToBottom(); // Scroll to the last message
+        };
+
+        function scrollToBottom() {
+            var chatBox = document.getElementById("chat-box");
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
     </script>
 </head>
 <body>
