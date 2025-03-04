@@ -31,7 +31,7 @@
 </head>
 <body>
     <nav>
-        <a href="chatroom.php">Chatroom</a>
+        <a href="chatroom.php"target="_top">Chatroom</a>
         <a href="syllabus.php" target="main">Syllabus</a>
         <a href="college.php" target="main">College</a>
         <a href="activities.php" target="main">Activities</a>
