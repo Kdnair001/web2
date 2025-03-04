@@ -6,10 +6,9 @@ date_default_timezone_set('Asia/Kolkata'); // Set timezone to IST
 
 $messageCollection = $db->messages;
 
-// Fetch latest 50 messages sorted in ascending order (oldest to newest)
+// Fetch messages (oldest to newest)
 $messages = $messageCollection->find([], [
-    'sort' => ['_id' => 1], // Use `_id` to maintain order (oldest to newest)
-    'limit' => 50
+    'sort' => ['timestamp' => 1], // Sorting by timestamp in ascending order
 ]);
 
 $response = ['success' => true, 'messages' => []];
