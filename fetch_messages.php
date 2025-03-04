@@ -5,13 +5,12 @@ require 'db.php';
 date_default_timezone_set('Asia/Kolkata'); // Set timezone to IST
 
 $messageCollection = $db->messages;
-$messages = $messageCollection->find([], [
-    'limit' => 20,
-    'sort' => ['timestamp' => -1] // Fetch latest messages first
-]);
 
-$messages = iterator_to_array($messages);
-$messages = array_reverse($messages); // Reverse so latest messages appear at the bottom
+// Fetch latest 50 messages sorted in ascending order (oldest to newest)
+$messages = $messageCollection->find([], [
+    'limit' => 50,
+    'sort' => ['timestamp' => 1] // Sorting in ascending order
+]);
 
 $response = ['success' => true, 'messages' => []];
 
