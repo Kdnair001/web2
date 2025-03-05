@@ -32,13 +32,13 @@
 <body>
     <nav>
         <a href="chatroom.php"target="_top">Chatroom</a>
-        <a href="syllabus.php" target="main">Syllabus</a>
-        <a href="college.php" target="main">College</a>
-        <a href="activities.php" target="main">Activities</a>
-        <a href="departments.php" target="main">Departments</a>
-        <a href="cesa.php" target="main">CESA</a>
-        <a href="user_dashboard.php" target="main">User Dashboard</a>
-        <a href="admin_dashboard.php" target="main">Admin Dashboard</a>
+        <a href="syllabus.php" target="_top">Syllabus</a>
+        <a href="college.php" target="_top">College</a>
+        <a href="activities.php" target="_top">Activities</a>
+        <a href="departments.php" target="_top">Departments</a>
+        <a href="cesa.php" target="_top">CESA</a>
+        <a href="user_dashboard.php" target="_top">User Dashboard</a>
+        <a href="admin_dashboard.php" target="_top">Admin Dashboard</a>
         <a href="logout.php" target="_top">Logout</a>
     </nav>
 </body>
