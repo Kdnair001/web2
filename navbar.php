@@ -32,7 +32,7 @@
 <body>
     <nav>
         <a href="chatroom.php"target="_top">Chatroom</a>
-        <a href="syllabus.php" target="_top">Syllabus</a>
+        <a href="syllabus.html" target="_top">Syllabus</a>
         <a href="college.php" target="_top">College</a>
         <a href="activities.php" target="_top">Activities</a>
         <a href="departments.php" target="_top">Departments</a>
