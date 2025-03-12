@@ -14,139 +14,117 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+    
     <style>
-        /* General Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        /* General Styles */
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
             background-color: #f4f4f4;
         }
 
-        /* Main Container */
-        .container {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        /* Header & Footer */
-        .header, .footer {
-            background: #007bff;
-            color: white;
-            text-align: center;
-            padding: 15px;
-            font-size: 1.2em;
-        }
-
-        /* Navbar */
-        .navbar {
-            background: #333;
+        /* Header */
+        header {
+            background-color: #007bff;
             color: white;
             text-align: center;
             padding: 10px;
         }
 
-        /* Content Layout */
-        .content {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
+        /* Navbar */
+        nav {
+            background-color: black;
+            padding: 10px;
+            text-align: center;
         }
 
-        /* Sidebar (Notices Section) */
-        .sidebar {
-            width: 25%;
-            background: #f4f4f4;
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+            margin: 5px;
+            display: inline-block;
+        }
+
+        /* Layout Container */
+        .container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin: 20px;
+        }
+
+        /* Sidebar (Notices) */
+        .notices {
+            flex: 1;
+            min-width: 250px;
+            background: white;
             padding: 15px;
-            overflow-y: auto;
-            border-right: 2px solid #ddd;
-            transition: all 0.3s ease;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
         }
 
         /* Main Content */
-        .main {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
+        main {
+            flex: 3;
+            background: white;
+            padding: 15px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
         }
 
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
+        /* Footer */
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            margin-top: 20px;
         }
 
         /* Responsive Design */
-        @media screen and (max-width: 1024px) { /* Tablets */
-            .sidebar {
-                width: 30%;
-            }
-        }
-
-        @media screen and (max-width: 768px) { /* Mobile */
-            .content {
+        @media (max-width: 768px) {
+            .container {
                 flex-direction: column;
             }
 
-            .sidebar {
+            .notices, main {
                 width: 100%;
-                border-right: none;
-                border-bottom: 2px solid #ddd;
             }
 
-            .main {
-                padding: 10px;
-            }
-        }
-
-        @media screen and (max-width: 480px) { /* Small Mobile */
-            .header, .footer {
-                font-size: 1em;
-                padding: 10px;
-            }
-
-            .navbar {
-                font-size: 0.9em;
+            nav a {
+                display: block;
+                text-align: center;
             }
         }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <!-- Header -->
-    <div class="header">
+    <!-- Header Section -->
+    <header>
         <?php include 'header.php'; ?>
-    </div>
+    </header>
 
     <!-- Navigation Bar -->
-    <div class="navbar">
+    <nav>
         <?php include 'navbar.php'; ?>
-    </div>
+    </nav>
 
-    <!-- Main Content Area -->
-    <div class="content">
-        <!-- Sidebar (Notices Section) -->
-        <div class="sidebar">
-            <iframe src="notices.php"></iframe>
-        </div>
+    <div class="container">
+        <!-- Sidebar for Notices -->
+        <aside class="notices">
+            <?php include 'notices.php'; ?>
+        </aside>
 
-        <!-- Main Content -->
-        <div class="main">
-            <iframe src="main.php"></iframe>
-        </div>
+        <!-- Main Content Area -->
+        <main>
+            <?php include 'main.php'; ?>
+        </main>
     </div>
 
     <!-- Footer -->
-    <div class="footer">
+    <footer>
         <?php include 'footer.php'; ?>
-    </div>
-</div>
-
+    </footer>
 </body>
 </html>
