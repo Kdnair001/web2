@@ -16,12 +16,19 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     <title>Dashboard</title>
     
     <style>
-        /* General Styles */
-        body {
-            font-family: Arial, sans-serif;
+        /* Reset */
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
             background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         /* Header */
@@ -29,40 +36,49 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
             background-color: #007bff;
             color: white;
             text-align: center;
-            padding: 10px;
+            padding: 15px;
+            font-size: 20px;
         }
 
         /* Navbar */
         nav {
-            background-color: black;
+            background-color: #222;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
             padding: 10px;
-            text-align: center;
         }
 
         nav a {
             color: white;
             text-decoration: none;
-            padding: 10px;
-            margin: 5px;
-            display: inline-block;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background 0.3s ease;
         }
 
-        /* Layout Container */
+        nav a:hover {
+            background: #007bff;
+        }
+
+        /* Main Layout */
         .container {
             display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            margin: 20px;
+            flex-grow: 1;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: auto;
         }
 
         /* Sidebar (Notices) */
         .notices {
             flex: 1;
-            min-width: 250px;
             background: white;
             padding: 15px;
+            border-radius: 8px;
             box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+            min-width: 250px;
         }
 
         /* Main Content */
@@ -70,6 +86,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
             flex: 3;
             background: white;
             padding: 15px;
+            border-radius: 8px;
             box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
         }
 
@@ -79,22 +96,17 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
             color: white;
             text-align: center;
             padding: 10px;
-            margin-top: 20px;
+            margin-top: auto;
         }
 
         /* Responsive Design */
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             .container {
                 flex-direction: column;
             }
 
             .notices, main {
                 width: 100%;
-            }
-
-            nav a {
-                display: block;
-                text-align: center;
             }
         }
     </style>
@@ -107,7 +119,9 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 
     <!-- Navigation Bar -->
     <nav>
-        <?php include 'navbar.php'; ?>
+        <a href="index.php">Home</a>
+        <a href="profile.php">Profile</a>
+        <a href="logout.php">Logout</a>
     </nav>
 
     <div class="container">
