@@ -46,8 +46,8 @@ $messages = array_reverse($messages);
                     <span class="timestamp"><?= date('H:i', strtotime($message['timestamp'])) ?></span>
 
                     <?php if ($message['user_id'] == $_SESSION['user_id'] || $user['role'] === 'admin'): ?>
-                        <button onclick="editMessage('<?= (string)$message['_id'] ?>')" class="edit-btn">Edit</button>
-                        <button onclick="deleteMessage('<?= (string)$message['_id'] ?>')">Delete</button>
+                        <button onclick="editMessage('<?= (string)$message['_id'] ?>')" class="edit-btn">✏️</button>
+                        <button onclick="deleteMessage('<?= (string)$message['_id'] ?>')">🗑️</button>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
