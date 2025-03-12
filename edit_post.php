@@ -34,6 +34,15 @@ if (!$post) {
     exit();
 }
 
+// Function to convert URLs into clickable links
+function makeLinks($text) {
+    return preg_replace(
+        '~(https?://[^\s]+)~',
+        '<a href="$1" target="_blank">$1</a>',
+        $text
+    );
+}
+
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $title = trim($_POST['title']);
@@ -72,6 +81,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <form method="POST">
         <input type="text" name="title" value="<?= htmlspecialchars($post['title']) ?>" required>
         <textarea name="content" required><?= htmlspecialchars($post['content']) ?></textarea>
+        <p><strong>Preview:</strong></p>
+        <div style="border: 1px solid #ccc; padding: 10px; background: #f9f9f9;">
+            <?= makeLinks(nl2br(htmlspecialchars($post['content']))) ?>
+        </div>
+        <br>
         <button type="submit">Update Post</button>
     </form>
 
@@ -79,4 +93,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <a href="admin_dashboard.php">⬅️ Back to Dashboard</a>
 </body>
 </html>
-
