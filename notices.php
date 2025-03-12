@@ -25,33 +25,80 @@ function makeLinks($text) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notices</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            text-align: center;
-        }
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .container {
+        width: 80%;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+        text-align: left; /* Aligns text properly inside notices */
+    }
+    
+    .notice {
+        border-bottom: 1px solid #ddd;
+        padding: 10px 0;
+        word-wrap: break-word; /* Ensures text doesn't overflow */
+        overflow-wrap: break-word;
+    }
+    
+    .notice h3 {
+        margin: 0;
+        color: #007bff;
+        font-size: 1.4em;
+    }
+    
+    .notice p {
+        font-size: 1em;
+        color: #333;
+        margin: 5px 0;
+    }
+    
+    .meta {
+        font-size: 0.9em;
+        color: #555;
+        margin-top: 5px;
+        font-style: italic;
+    }
+    
+    /* Fix for long links */
+    .notice a {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        display: inline-block;
+        max-width: 100%;
+        white-space: normal;
+        color: #007bff;
+        text-decoration: underline;
+        font-weight: bold;
+    }
+
+    /* Responsive Design */
+    @media screen and (max-width: 768px) {
         .container {
-            width: 80%;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
+            width: 95%;
+            padding: 15px;
         }
-        .notice {
-            border-bottom: 1px solid #ddd;
-            padding: 10px 0;
-        }
+
         .notice h3 {
-            margin: 0;
-            color: #007bff;
+            font-size: 1.2em;
         }
-        .meta {
-            font-size: 0.9em;
-            color: #555;
+
+        .notice p {
+            font-size: 0.95em;
         }
-    </style>
+    }
+</style>
+
 </head>
 <body>
 
