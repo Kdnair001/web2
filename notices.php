@@ -5,6 +5,17 @@ $noticeCollection = $db->notices;
 
 // Fetch all notices, sorted by most recent
 $notices = $noticeCollection->find([], ['sort' => ['created_at' => -1]]);
+
+/**
+ * Convert URLs in text into clickable links
+ */
+function makeLinks($text) {
+    return preg_replace(
+        '/(https?:\/\/[^\s]+)/',
+        '<a href="$1" target="_blank">$1</a>',
+        $text
+    );
+}
 ?>
 
 <!DOCTYPE html>
@@ -50,9 +61,10 @@ $notices = $noticeCollection->find([], ['sort' => ['created_at' => -1]]);
         <?php foreach ($notices as $notice): ?>
             <div class="notice">
                 <h3><?= htmlspecialchars($notice['title'] ?? 'No Title') ?></h3>
-                <p><?= nl2br(htmlspecialchars($notice['content'] ?? 'No Content')) ?></p>
+                <p><?= nl2br(makeLinks(htmlspecialchars($notice['content'] ?? 'No Content'))) ?></p>
                 <p class="meta">
-              Posted by: <?= htmlspecialchars($notice['author'] ?? 'Admin') ?> | <?= isset($notice['created_at']) ? date("H:i:s, d/m/Y", $notice['created_at']->toDateTime()->setTimezone(new DateTimeZone('Asia/Kolkata'))->getTimestamp()) : 'Unknown Date' ?>
+                    Posted by: <?= htmlspecialchars($notice['author'] ?? 'Admin') ?> | 
+                    <?= isset($notice['created_at']) ? date("H:i:s, d/m/Y", $notice['created_at']->toDateTime()->setTimezone(new DateTimeZone('Asia/Kolkata'))->getTimestamp()) : 'Unknown Date' ?>
                 </p>
             </div>
         <?php endforeach; ?>
@@ -61,4 +73,3 @@ $notices = $noticeCollection->find([], ['sort' => ['created_at' => -1]]);
 
 </body>
 </html>
-
