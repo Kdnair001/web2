@@ -1,7 +1,5 @@
 <?php
 session_start();
-
-// Redirect to login if user is not logged in
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     header("Location: login.php");
     exit();
@@ -16,7 +14,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     <title>Dashboard</title>
     
     <style>
-        /* Reset */
+        /* Reset styles */
         * {
             margin: 0;
             padding: 0;
@@ -29,46 +27,52 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            align-items: center;
         }
 
         /* Header */
         header {
+            width: 100%;
             background-color: #007bff;
             color: white;
             text-align: center;
             padding: 15px;
-            font-size: 20px;
+            font-size: 24px;
+            font-weight: bold;
         }
 
         /* Navbar */
         nav {
+            width: 100%;
             background-color: #222;
             display: flex;
             justify-content: center;
-            gap: 15px;
-            padding: 10px;
+            gap: 20px;
+            padding: 12px 0;
         }
 
         nav a {
             color: white;
             text-decoration: none;
-            padding: 10px 15px;
+            padding: 10px 20px;
             border-radius: 5px;
             transition: background 0.3s ease;
+            font-size: 16px;
         }
 
         nav a:hover {
             background: #007bff;
         }
 
-        /* Main Layout */
+        /* Main Container */
         .container {
             display: flex;
-            flex-grow: 1;
+            flex-direction: row;
+            justify-content: center;
             gap: 20px;
             padding: 20px;
             max-width: 1200px;
-            margin: auto;
+            width: 100%;
         }
 
         /* Sidebar (Notices) */
@@ -97,16 +101,18 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
             text-align: center;
             padding: 10px;
             margin-top: auto;
+            width: 100%;
         }
 
-        /* Responsive Design */
+        /* Responsive Fixes */
         @media (max-width: 900px) {
             .container {
                 flex-direction: column;
+                align-items: center;
             }
 
             .notices, main {
-                width: 100%;
+                width: 90%;
             }
         }
     </style>
@@ -114,7 +120,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 <body>
     <!-- Header Section -->
     <header>
-        <?php include 'header.php'; ?>
+        CTZENOCS
     </header>
 
     <!-- Navigation Bar -->
@@ -124,21 +130,24 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
         <a href="logout.php">Logout</a>
     </nav>
 
+    <!-- Main Content -->
     <div class="container">
-        <!-- Sidebar for Notices -->
+        <!-- Notices Sidebar -->
         <aside class="notices">
+            <h3>Notices</h3>
             <?php include 'notices.php'; ?>
         </aside>
 
-        <!-- Main Content Area -->
+        <!-- Main Section -->
         <main>
+            <h2>Welcome, User</h2>
             <?php include 'main.php'; ?>
         </main>
     </div>
 
     <!-- Footer -->
     <footer>
-        <?php include 'footer.php'; ?>
+        &copy; 2025 CTZENOCS. All Rights Reserved.
     </footer>
 </body>
 </html>
