@@ -13,7 +13,7 @@
     </style>
 </head>
 <body>
-    <h2>Welcome, Karthik D Nair</h2>
+    <h2>Welcome, </h2>
     <p>Main Content Area</p>
 </body>
 </html>
