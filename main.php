@@ -5,7 +5,7 @@
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
-            background-image: url('unnamed.jpg');
+            background-image: url('unnamed1.jpg');
             background-size: cover; /* This will cover the entire page with the background image */
             background-position: center; /* Center the image */
             background-attachment: fixed; /* Keeps the background image fixed while scrolling */
