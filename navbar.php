@@ -33,10 +33,10 @@
     <nav>
         <a href="chatroom.php"target="_top">Chatroom</a>
         <a href="syllabus.html" target="_top">Syllabus</a>
-        <a href="college.php" target="_top">College</a>
-        <a href="activities.php" target="_top">Activities</a>
-        <a href="departments.php" target="_top">Departments</a>
-        <a href="cesa.php" target="_top">CESA</a>
+        <a href="college.html" target="_top">College</a>
+        <a href="activities.html" target="_top">Activities</a>
+        <a href="departments.html" target="_top">Departments</a>
+        <a href="cesa.html" target="_top">CESA</a>
         <a href="user_dashboard.php" target="_top">User Dashboard</a>
         <a href="admin_dashboard.php" target="_top">Admin Dashboard</a>
         <a href="logout.php" target="_top">Logout</a>
