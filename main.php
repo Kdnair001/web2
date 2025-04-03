@@ -109,7 +109,7 @@
 
     <script>
         const slides = [
-            { image:  "cesa.jpeg",description: "CESA-Computer Engineering Students Association Inaugration Event" },
+            { image:  "cesa.jpg",description: "CESA-Computer Engineering Students Association Inaugration Event" },
             { image: "Gammick.jpg", description: "Gammick-Game Development Workshop" },
             { image: "softwarelab-1.jpeg", description: "Sofware Lab-1" },
             { image: "softwarelab-2.jpeg", description: "Sofware Lab-2" },
@@ -141,12 +141,12 @@
 
         function autoSlide() {
             changeSlide(1);
-            slideInterval = setTimeout(autoSlide, 3000);
+            slideInterval = setTimeout(autoSlide, 6000);
         }
 
         function resetAutoSlide() {
             clearTimeout(slideInterval);
-            slideInterval = setTimeout(autoSlide, 3000);
+            slideInterval = setTimeout(autoSlide, 6000);
         }
 
         function createIndicators() {
@@ -171,7 +171,7 @@
 
         createIndicators();
         changeBackground();
-        slideInterval = setTimeout(autoSlide, 3000);
+        slideInterval = setTimeout(autoSlide, 6000);
     </script>
 
 </body>
